@@ -1,0 +1,23 @@
+{
+  "name": "blue-logan-shop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Blue Logan shop and portal. Static pages + Vercel functions + Stripe Checkout + Supabase. Designed by Barker Digital.",
+  "scripts": {
+    "dev": "npx vercel dev",
+    "build:pages": "node tools/build-pages.js",
+    "check:webhook": "node tools/check-webhook-url.js",
+    "test": "node tests/run-all.js"
+  },
+  "dependencies": {
+    "@vercel/functions": "^3.11.3",
+    "stripe": "^20.4.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.16"
+  },
+  "engines": { "node": ">=20" },
+  "author": "Barker Digital",
+  "license": "UNLICENSED"
+}

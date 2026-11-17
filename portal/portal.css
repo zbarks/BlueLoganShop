@@ -1,0 +1,71 @@
+/* Blue Logan portal: same quiet look as the shop, big easy buttons. Designed by Barker Digital */
+@import url('/assets/css/shop.css');
+
+body { font-size: 17px; font-weight: 400; }
+.p-header { border-bottom: 1px solid var(--rule); }
+.p-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 72px; flex-wrap: wrap; }
+.p-brand { font-size: 12px; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+.p-nav { display: flex; gap: 4px 22px; flex-wrap: wrap; padding: 10px 0; }
+.p-nav a, .p-nav button {
+  font-size: 11px; letter-spacing: var(--caps); text-transform: uppercase; color: var(--grey); white-space: nowrap;
+  background: none; border: 0; border-bottom: 1px solid transparent; padding: 6px 0; cursor: pointer;
+}
+.p-nav a:hover, .p-nav button:hover { color: var(--ink); }
+.p-nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--ink); }
+.p-nav .badge { color: var(--ink); margin-left: 4px; }
+.p-main { padding-top: 36px; padding-bottom: 90px; }
+.p-main h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 300; margin: 4px 0 24px; white-space: nowrap; }
+.p-main h2 { font-size: 11px; letter-spacing: var(--caps); text-transform: uppercase; font-weight: 400; margin: 0 0 14px; }
+.big-buttons { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 36px; }
+.big-btn { display: block; border: 1px solid var(--rule); padding: 24px; transition: border-color .2s; }
+.big-btn:hover { border-color: var(--ink); }
+.big-btn .n { font-size: 34px; font-weight: 300; line-height: 1.1; }
+.big-btn strong { display: block; font-size: 11px; letter-spacing: var(--caps); text-transform: uppercase; font-weight: 400; margin-top: 8px; }
+.big-btn span { color: var(--grey); font-size: 15px; }
+.howto { border: 1px solid var(--rule); padding: 24px 28px; }
+.howto ol { padding-left: 20px; margin: 0; }
+.howto li { margin-bottom: 10px; }
+.panel { border: 1px solid var(--rule); padding: 24px; margin-bottom: 20px; }
+.rows { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--rule); }
+.rows li { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+.rows img { width: 60px; height: 75px; object-fit: cover; background: var(--wash); }
+.rows .grow { flex: 1 1 220px; min-width: 0; }
+.rows .title { font-size: 17px; }
+.rows .sub { color: var(--grey); font-size: 14px; }
+.rows .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill { display: inline-block; font-size: 10px; letter-spacing: var(--caps); text-transform: uppercase; padding: 3px 8px; border: 1px solid var(--rule); color: var(--grey); white-space: nowrap; }
+.pill.live { border-color: var(--ink); color: var(--ink); }
+.pill.new { background: var(--ink); border-color: var(--ink); color: var(--white); }
+.pbtn {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 18px; border: 1px solid var(--ink);
+  background: var(--white); cursor: pointer; white-space: nowrap; font-size: 11px; letter-spacing: var(--caps); text-transform: uppercase;
+}
+.pbtn:hover { background: var(--ink); color: var(--white); }
+.pbtn.go { background: var(--ink); color: var(--white); }
+.pbtn.go:hover { background: var(--white); color: var(--ink); }
+.pbtn.danger { color: #8a2a1e; border-color: #8a2a1e; }
+.pbtn.small { min-height: 38px; padding: 0 12px; }
+.pbtn[disabled] { opacity: .4; cursor: default; }
+.hint { color: var(--grey); font-size: 14px; margin: 0 0 10px; }
+.p-main .field input, .p-main .field textarea { font-weight: 400; }
+.switch { display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 16px; }
+.switch input { width: 22px; height: 22px; accent-color: var(--ink); }
+.photos { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 14px; }
+.photo { position: relative; width: 120px; }
+.photo img { width: 120px; height: 150px; object-fit: cover; background: var(--wash); }
+.photo .row { display: flex; justify-content: space-between; margin-top: 4px; }
+.photo .row button { border: 0; background: none; cursor: pointer; font-size: 13px; padding: 4px; }
+.photo .first { position: absolute; top: 6px; left: 6px; background: var(--white); font-size: 9px; letter-spacing: var(--caps); text-transform: uppercase; padding: 2px 6px; }
+.placer { position: relative; max-width: 720px; cursor: crosshair; background: var(--wash); }
+.placer img { width: 100%; height: auto; }
+.placer .spot { pointer-events: none; }
+.placer .spot.other::before { background: var(--soft); box-shadow: none; }
+.sticky-save { position: sticky; bottom: 0; background: var(--white); border-top: 1px solid var(--rule); padding: 14px 0; margin-top: 20px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; z-index: 5; }
+.login-box { max-width: 420px; margin: 10vh auto; border: 1px solid var(--rule); padding: 34px; }
+@media (max-width: 480px) { .login-box { padding: 24px 18px; } }
+.notice { border: 1px solid var(--rule); padding: 12px 14px; margin: 0 0 18px; font-size: 15px; }
+.notice.ok { border-color: var(--ink); }
+.notice.bad, .notice.warn { border-color: #8a2a1e; color: #8a2a1e; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--white); padding: 12px 20px; font-size: 11px; letter-spacing: var(--caps); text-transform: uppercase; z-index: 99; }
+.crumb { display: inline-block; margin: 0 0 14px; font-size: 11px; letter-spacing: var(--caps); text-transform: uppercase; color: var(--grey); }
+.muted { color: var(--grey); }

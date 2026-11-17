@@ -1,0 +1,98 @@
+{
+ "_note": "Design preview data, used only when Supabase is not configured. Mirrors supabase/migrations/0003_seed.sql.",
+ "products": [
+  {
+   "id": "6177c26c-1b6b-5ff1-8002-4b1573e416db",
+   "slug": "lampshade-faces",
+   "title": "Lampshade, faces",
+   "description": "Description to come.",
+   "type": "print",
+   "price_pence": null,
+   "currency": "gbp",
+   "mode": "enquire",
+   "images": [
+    "/images/works/lampshade-faces.jpg"
+   ],
+   "stock": null,
+   "is_published": true,
+   "sort_order": 10,
+   "hotspot": null
+  },
+  {
+   "id": "17819bc1-1474-5d38-b778-8930ffd8f9db",
+   "slug": "lampshade-party",
+   "title": "Lampshade, party",
+   "description": "Description to come.",
+   "type": "print",
+   "price_pence": null,
+   "currency": "gbp",
+   "mode": "enquire",
+   "images": [
+    "/images/works/lampshade-party.jpg"
+   ],
+   "stock": null,
+   "is_published": true,
+   "sort_order": 20,
+   "hotspot": null
+  },
+  {
+   "id": "f8e48046-3014-51d6-8170-7443da9c6dda",
+   "slug": "vase",
+   "title": "Vase",
+   "description": "Description to come.",
+   "type": "print",
+   "price_pence": null,
+   "currency": "gbp",
+   "mode": "enquire",
+   "images": [
+    "/images/works/vase.jpg"
+   ],
+   "stock": null,
+   "is_published": true,
+   "sort_order": 30,
+   "hotspot": null
+  },
+  {
+   "id": "4034da3c-9718-5dc4-a4e5-024665657d48",
+   "slug": "ritas",
+   "title": "Rita's",
+   "description": "Description to come.",
+   "type": "print",
+   "price_pence": null,
+   "currency": "gbp",
+   "mode": "enquire",
+   "images": [
+    "/images/works/ritas.jpg"
+   ],
+   "stock": null,
+   "is_published": true,
+   "sort_order": 40,
+   "hotspot": null
+  },
+  {
+   "id": "7f6c5ebf-ac6b-5268-8316-7916bafd92b7",
+   "slug": "ritas-coaster",
+   "title": "Rita's coaster",
+   "description": "Description to come.",
+   "type": "print",
+   "price_pence": null,
+   "currency": "gbp",
+   "mode": "enquire",
+   "images": [
+    "/images/works/ritas-coaster.jpg"
+   ],
+   "stock": null,
+   "is_published": true,
+   "sort_order": 50,
+   "hotspot": null
+  }
+ ],
+ "variants": [],
+ "settings": {
+  "shop_open": true,
+  "shop_title": "Blue Logan Shop",
+  "intro_text": "",
+  "hero_image": "/images/works/desert-5-mural.jpg"
+ },
+ "discounts": []
+}
