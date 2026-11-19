@@ -3,48 +3,68 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Shop | Blue Logan</title>
-<meta name="description" content="Work by Blue Logan.">
+<title>Shop all | Blue's Shop</title>
+<meta name="description" content="Everything in Blue Logan's shop.">
 
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f3ecdf">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/permanent-marker-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/css/shop.css">
 <script src="/assets/js/shop.js" defer></script>
 </head>
-<body data-page="shop" class="has-hero">
+<body data-page="shop">
 <a class="visually-hidden" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap header-row">
+    <!-- TODO(Blue): his own lettering for the shop name (editable in the portal under Settings). -->
+    <div class="wm-box"><a class="wordmark" href="/" data-shop-title data-fit="18">Blue's Shop</a></div>
     <nav class="main-nav" aria-label="Main">
-      <a href="/shop" aria-current="page">Shop</a>
+      <a class="shop-all" href="/shop" aria-current="page">Shop all</a>
+      <a href="/search">Search</a>
       <a href="/contact">Contact</a>
       <a href="https://bluelogan.co.uk" data-main-site="">Blue Logan</a>
     </nav>
-    <!-- TODO(Blue): placeholder name. Blue will write or draw this himself (editable in the portal under Settings). -->
-    <div class="wm-box"><a class="wordmark" href="/shop" data-shop-title data-fit="9">Blue Logan Shop</a></div>
+    <a class="basket-link" href="/basket" aria-label="Basket">
+      <!-- TODO(Blue): a basket drawn by Blue replaces this. -->
+      <svg class="basket-icon" viewBox="0 0 60 52" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 20h48l-6 26H12z"/><path d="M18 20 28 5M42 20 32 5"/><path d="M22 28v11M30 28v11M38 28v11"/></svg>
+      <span class="basket-count" data-basket-count data-n="0">0</span>
+    </a>
   </div>
 </header>
 <main id="main">
-<section class="hero" aria-label="Main picture">
-  <div class="hero-frame" id="hero">
-    <img id="hero-img" alt="" fetchpriority="high">
-  </div>
-</section>
 <div class="wrap">
-  <p class="intro" id="intro"><span class="placeholder">Intro text to come</span></p>
-</div>
-<section class="wrap works" aria-label="All pieces">
+  <div class="page-head">
+    <h1 class="page-title" id="list-title" data-fit="26">Shop all</h1>
+    <p class="page-sub" id="list-sub"></p>
+  </div>
+  <div class="toolbar">
+    <nav class="tabs" id="tabs" aria-label="Categories"></nav>
+    <div class="tools">
+      <label class="visually-hidden" for="q">Search the shop</label>
+      <input class="search" id="q" type="search" placeholder="Search the shop" autocomplete="off">
+      <label class="visually-hidden" for="sort">Sort</label>
+      <select class="sort" id="sort">
+        <option value="">Shop order</option>
+        <option value="new">Newest</option>
+        <option value="low">Price, low to high</option>
+        <option value="high">Price, high to low</option>
+      </select>
+    </div>
+  </div>
   <div class="grid" id="grid" aria-live="polite"></div>
-</section>
+</div>
 </main>
 <footer class="site-footer">
   <div class="wrap footer-row">
+    <span class="footer-hand" data-shop-title>Blue's Shop</span>
     <nav aria-label="Footer">
-      <a href="/shop">Shop</a>
+      <a href="/shop">Shop all</a>
+      <a href="/search">Search</a>
+      <a href="/delivery-and-returns">Delivery and returns</a>
       <a href="/contact">Contact</a>
       <a href="https://bluelogan.co.uk" data-main-site="">Blue Logan</a>
+      <a href="https://barkerdigital.co.uk">Site by Barker Digital</a>
     </nav>
-    <a href="https://barkerdigital.co.uk">Site by Barker Digital</a>
   </div>
 </footer>
 </body>

@@ -20,9 +20,10 @@ const adminGet = (p) => get('/api/admin/' + p, { cookie });
 const adminPost = (p, b) => post('/api/admin/' + p, b, { cookie });
 const cookiesFrom = (h) => h.getSetCookie().map((c) => c.split(';')[0]).join('; ');
 
-// The shop is enquiry only. Sales code is kept switched off for later, so to
-// keep it tested we add three buy-mode products straight into the database.
+// Extra test products on top of the seeded five: stock limits, variants, and
+// one enquiry-only piece.
 await sql(`insert into bl_products (slug,title,mode,price_pence,stock,images,is_published,sort_order) values
+  ('one-off-enquire','One-off to enquire about','enquire',null,1,'{/images/placeholders/image-1.svg}',true,140),
   ('placeholder-print-one','Placeholder Print One','buy',12000,25,'{/images/placeholders/image-1.svg}',true,100),
   ('placeholder-print-two','Placeholder Print Two','buy',9500,25,'{/images/placeholders/image-2.svg}',true,110),
   ('placeholder-lampshade-two','Placeholder Lampshade Two','buy',16000,null,'{/images/placeholders/image-3.svg}',true,120),
@@ -35,21 +36,36 @@ const lampVariants = await sql(`select * from bl_product_variants where product_
 
 const products = (await get('/api/shop/products')).body.products;
 const P = Object.fromEntries(products.map((p) => [p.slug, p]));
-const print1 = P['placeholder-print-one'], oneoff = P['placeholder-one-off-one'], enq = P['ritas'];
+const print1 = P['placeholder-print-one'], oneoff = P['placeholder-one-off-one'], enq = P['one-off-enquire'];
 const lamp2 = { ...P['placeholder-lampshade-two'], variants: lampVariants };
 
-console.log('\nEnquiry shop');
-await test('five pieces from Blue\'s photos (plus test products) are public', () => assert.equal(products.length, 9));
-await test('the public shop never sends prices or stock numbers', () => {
-  for (const p of products) for (const k of ['price_pence', 'stock', 'mode', 'variants']) assert.ok(!(k in p), `${p.slug} has ${k}`);
+console.log('\nShop data');
+await test('five starting products (plus test products) are public', () => assert.equal(products.length, 10));
+await test('prices are sent for buy products, never for enquire ones, and stock counts never', () => {
+  assert.equal(P['vase'].price_pence, 24000); assert.equal(P['vase'].mode, 'buy');
+  assert.equal(enq.price_pence, null); assert.equal(enq.mode, 'enquire');
+  for (const p of products) assert.ok(!('stock' in p), `${p.slug} leaks stock`);
 });
-await test('no points are seeded on the mural (Blue places them)', () => assert.ok(products.filter((p) => !/^placeholder-/.test(p.slug)).every((p) => p.hotspot === null)));
-await test('placeholder shop name and empty intro are served', async () => {
+await test('products carry their category; the five starting categories are public, in order', async () => {
   const d = (await get('/api/shop/products')).body;
-  assert.equal(d.shop_title, 'Blue Logan Shop'); assert.equal(d.intro_text, ''); assert.equal(d.hero_image, '/images/works/desert-5-mural.jpg');
+  assert.deepEqual(d.categories.map((c) => c.name), ['Objects & Oddities', 'Little Treasures', 'Things to Wear', 'Paper Things', 'Special Editions']);
+  assert.deepEqual(P['vase'].category, { slug: 'objects-and-oddities', name: 'Objects & Oddities' });
+  assert.equal(P['ritas'].category.slug, 'paper-things');
+});
+await test('three products are in the shop window', () => assert.deepEqual(products.filter((p) => p.featured).map((p) => p.slug).sort(), ['lampshade-faces', 'lampshade-party', 'vase']));
+await test('placeholder shop name and welcome line are served; no illustration yet', async () => {
+  const d = (await get('/api/shop/products')).body;
+  assert.equal(d.shop_title, "Blue's Shop"); assert.equal(d.intro_text, 'A curious little world of wonderful things.');
+  assert.equal(d.hero_image, ''); assert.equal(d.hero_image_mobile, '');
+});
+await test('anyone can read categories, nobody public can write them', async () => {
+  const rows = await (await anon('bl_categories?select=*')).json();
+  assert.equal(rows.length, 5);
+  const w = await anon('bl_categories', { method: 'POST', body: JSON.stringify({ slug: 'x', name: 'x' }) });
+  assert.ok(w.status >= 400);
 });
 
-console.log('\nSales code (switched off in the shop, kept for later)');
+console.log('\nPricing (server only)');
 await test('quote ignores any price sent by the browser', async () => {
   const q = (await post('/api/shop/quote', { items: [{ product_id: print1.id, qty: 2, price_pence: 1, unit_pence: 1 }] })).body;
   assert.equal(q.lines[0].unit_pence, 12000);
@@ -100,6 +116,13 @@ await test('anon cannot read private settings', async () => {
   await sql(`insert into bl_site_settings(key,value) values ('secret_thing','"x"') on conflict do nothing`);
   const rows = await (await anon('bl_site_settings?select=*')).json();
   assert.ok(!rows.some((r) => r.key === 'secret_thing'));
+});
+
+await test('Brioche\'s enquiries table in the shared project is untouched', async () => {
+  const [row] = await sql(`select name from enquiries where id = 1`);
+  assert.equal(row.name, 'brioche booking');
+  const [{ n }] = await sql(`select count(*)::int n from information_schema.columns where table_name = 'enquiries' and table_schema = 'public'`);
+  assert.equal(n, 2);
 });
 
 console.log('\nCheckout and webhook');
@@ -174,7 +197,7 @@ await test('one-off sells out after purchase', async () => {
   const id = r.body.url.split('/pay/')[1];
   await fetch(`${STRIPE}/__complete/${id}`);
   const p = (await get('/api/shop/product?slug=placeholder-one-off-one')).body.product;
-  assert.equal(p.sold, true);
+  assert.equal(p.sold_out, true);
   const again = await post('/api/checkout', { items: [{ product_id: oneoff.id, qty: 1 }] });
   assert.equal(again.status, 409); assert.match(again.body.problems[0].reason, /sold out/);
 });
@@ -191,38 +214,29 @@ await test('admin API refuses without a session', async () => {
   for (const a of ['home', 'orders', 'products', 'enquiries', 'settings']) assert.equal((await get('/api/admin/' + a)).status, 401, a);
   assert.equal((await post('/api/admin/order-refund', { id: orderId })).status, 401);
 });
-await test('another client\'s login (Cleanway) cannot open Blue\'s portal', async () => {
-  assert.equal((await post('/api/admin/login', { email: 'cleanway@example.com', password: 'pw' })).status, 401);
-  assert.equal((await post('/api/admin/login', { email: 'someone@example.com', password: 'pw' })).status, 401);
+await test('wrong username or password is refused', async () => {
+  assert.equal((await post('/api/admin/login', { username: 'admin', password: 'nope' })).status, 401);
+  assert.equal((await post('/api/admin/login', { username: 'blue', password: 'test-only-password' })).status, 401);
+  assert.equal((await post('/api/admin/login', {})).status, 401);
 });
-await test('Brioche\'s enquiries table and shared function are untouched', async () => {
-  const [row] = await sql(`select name from enquiries where id = 1`);
-  assert.equal(row.name, 'brioche booking');
-  const [{ n }] = await sql(`select count(*)::int n from information_schema.columns where table_name = 'enquiries' and table_schema = 'public'`);
-  assert.equal(n, 2);
+await test('a forged or edited session cookie is refused', async () => {
+  const fake = Buffer.from(JSON.stringify({ exp: Date.now() + 1e9 })).toString('base64url') + '.not-a-real-signature';
+  assert.equal((await get('/api/admin/home', { cookie: 'bl_session=' + fake })).status, 401);
+  const page = await fetch(SITE + '/portal', { headers: { cookie: 'bl_session=' + fake }, redirect: 'manual' });
+  assert.equal(page.status, 302);
 });
-await test('wrong password is refused', async () => {
-  assert.equal((await post('/api/admin/login', { email: 'blue@example.com', password: 'nope' })).status, 401);
-});
-await test('admin logs in with HttpOnly cookies and can open the portal', async () => {
-  const r = await post('/api/admin/login', { email: 'Blue@Example.com', password: 'correct horse' });
+await test('admin logs in (HttpOnly signed cookie) and can open the portal', async () => {
+  const r = await post('/api/admin/login', { username: 'Admin', password: 'test-only-password' });
   assert.equal(r.status, 200);
   const raw = r.headers.getSetCookie().join(' | ');
-  assert.match(raw, /HttpOnly/); assert.match(raw, /SameSite=Strict/);
+  assert.match(raw, /bl_session=/); assert.match(raw, /HttpOnly/); assert.match(raw, /SameSite=Strict/);
   cookie = cookiesFrom(r.headers);
   const page = await fetch(SITE + '/portal/products', { headers: { cookie }, redirect: 'manual' });
   assert.equal(page.status, 200);
-});
-await test('expired access token is refreshed', async () => {
-  await fetch(`${SUPA}/__expire`);
-  assert.equal((await adminGet('home')).status, 401);
-  const r = await post('/api/admin/refresh', {}, { cookie });
-  assert.equal(r.status, 200);
-  cookie = cookiesFrom(r.headers);
   assert.equal((await adminGet('home')).status, 200);
 });
 
-console.log('\nSales code: order handling (kept for later)');
+console.log('\nPortal: orders');
 await test('orders list shows the paid order and the home count', async () => {
   const o = (await adminGet('orders?status=paid')).body.orders;
   assert.ok(o.some((x) => x.id === orderId));
@@ -255,14 +269,14 @@ await test('product enquiry is saved and emailed to Blue', async () => {
   const r = await post('/api/shop/enquiry', { product_id: enq.id, name: 'Ann', email: 'ann@example.com', message: 'Is this still available?' });
   assert.equal(r.status, 200);
   const sent = (await emails()).slice(before);
-  assert.equal(sent[0].to[0], 'blue@example.com'); assert.match(sent[0].subject, /Rita's/); assert.equal(sent[0].reply_to, 'ann@example.com');
+  assert.equal(sent[0].to[0], 'blue@example.com'); assert.match(sent[0].subject, /One-off to enquire about/); assert.equal(sent[0].reply_to, 'ann@example.com');
 });
 await test('contact form validates and saves', async () => {
   const bad = await post('/api/shop/contact', { name: '', email: 'x', message: '' });
   assert.equal(bad.status, 400); assert.ok(bad.body.errors.email);
   assert.equal((await post('/api/shop/contact', { name: 'Bob', email: 'bob@example.com', message: 'Hello there' })).status, 200);
   const list = (await adminGet('enquiries')).body.enquiries;
-  assert.equal(list.length, 2); assert.equal(list.find((e) => e.name === 'Ann').product_title, "Rita's");
+  assert.equal(list.length, 2); assert.equal(list.find((e) => e.name === 'Ann').product_title, 'One-off to enquire about');
 });
 await test('honeypot silently drops bots', async () => {
   await post('/api/shop/contact', { name: 'Bot', email: 'bot@example.com', message: 'spam', website: 'x' });
@@ -272,33 +286,42 @@ await test('honeypot silently drops bots', async () => {
 
 console.log('\nPortal: products and settings');
 let newId;
-await test('add a piece with a photo, a point on the main picture and sold', async () => {
+await test('add a product with a photo, price, stock, category, options and the window', async () => {
   const u = (await adminPost('upload-url', { content_type: 'image/png' })).body;
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
   const put = await fetch(u.uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'image/png' }, body: png });
   assert.equal(put.status, 200);
   assert.equal((await fetch(u.publicUrl)).status, 200);
+  const cats = (await adminGet('categories')).body.categories;
+  const wear = cats.find((c) => c.slug === 'things-to-wear');
   const r = await adminPost('product-save', {
-    title: 'Test Lamp & Shade', description: 'x', images: [u.publicUrl, 'https://evil.example.com/x.jpg'],
-    hotspot: { x: 150, y: 33.333 }, sold: true, is_published: false, price: '99', mode: 'buy',
+    title: 'Test Scarf & Hat', description: 'x', images: [u.publicUrl, 'https://evil.example.com/x.jpg'],
+    price: '£35.50', stock: '12', mode: 'buy', category_id: wear.id, is_featured: true, is_published: false,
+    variants: [{ label: 'Red', price: '', stock: '5' }, { label: 'Blue', price: '38', stock: '' }],
   });
   assert.equal(r.status, 200, JSON.stringify(r.body));
   newId = r.body.product.id;
-  assert.equal(r.body.product.slug, 'test-lamp-and-shade');
-  assert.equal(r.body.product.mode, 'enquire', 'always enquiry');
-  assert.equal(r.body.product.price_pence, null, 'never a price');
-  assert.equal(r.body.product.stock, 0, 'sold');
-  assert.deepEqual(r.body.product.hotspot, { x: 100, y: 33.3 });
-  assert.deepEqual(r.body.product.images, [u.publicUrl], 'outside image URLs are dropped');
+  const p = r.body.product;
+  assert.equal(p.slug, 'test-scarf-and-hat'); assert.equal(p.price_pence, 3550); assert.equal(p.stock, 12);
+  assert.equal(p.category_id, wear.id); assert.equal(p.is_featured, true);
+  assert.equal(p.variants.length, 2); assert.equal(p.variants[1].price_pence, 3800);
+  assert.deepEqual(p.images, [u.publicUrl], 'outside image URLs are dropped');
+});
+await test('enquire products drop their price and options', async () => {
+  const r = await adminPost('product-save', { id: newId, title: 'Test Scarf & Hat', mode: 'enquire', price: '35', images: [], variants: [{ label: 'Red' }] });
+  assert.equal(r.status, 200); assert.equal(r.body.product.mode, 'enquire'); assert.equal(r.body.product.variants.length, 0);
+  await adminPost('product-save', { id: newId, title: 'Test Scarf & Hat', mode: 'buy', price: '35.50', stock: '12', images: [], is_featured: true });
 });
 await test('validation explains problems in plain words', async () => {
-  const r = await adminPost('product-save', { title: '', is_published: true, images: [] });
-  assert.equal(r.status, 400); assert.ok(r.body.errors.title && r.body.errors.images);
+  const r = await adminPost('product-save', { title: '', mode: 'buy', price: 'abc', stock: '1.5', is_published: true, images: [] });
+  assert.equal(r.status, 400); assert.ok(r.body.errors.title && r.body.errors.images && r.body.errors.price && r.body.errors.stock);
+  const noPrice = await adminPost('product-save', { title: 'X', mode: 'buy', price: '' });
+  assert.ok(noPrice.body.errors.price);
 });
 await test('unpublished products never appear on the public shop', async () => {
   const list = (await get('/api/shop/products')).body.products;
   assert.ok(!list.some((p) => p.id === newId));
-  assert.equal((await get('/api/shop/product?slug=test-lamp-and-shade')).status, 404);
+  assert.equal((await get('/api/shop/product?slug=test-scarf-and-hat')).status, 404);
   const rows = await (await anon(`bl_products?select=*&id=eq.${newId}`)).json();
   assert.deepEqual(rows, []);
   const ck = await post('/api/checkout', { items: [{ product_id: newId, variant_id: null, qty: 1 }] });
@@ -317,22 +340,42 @@ await test('reorder changes shop order', async () => {
   assert.deepEqual(after, ids);
 });
 await test('duplicate web address is caught', async () => {
-  const r = await adminPost('product-save', { title: 'Vase', images: [] });
+  const r = await adminPost('product-save', { title: 'Vase', mode: 'enquire', images: [] });
   assert.equal(r.status, 409); assert.ok(r.body.errors.slug);
 });
-await test('settings: shop name, intro and main picture reach the shop', async () => {
-  const bad = await adminPost('settings-save', { shop_title: 'x', intro_text: '', hero_image: 'https://evil.example.com/a.jpg' });
+await test('settings: name, welcome line and both illustrations reach the shop', async () => {
+  const bad = await adminPost('settings-save', { shop_title: 'x', hero_image: 'https://evil.example.com/a.jpg', hero_image_mobile: '' });
   assert.equal(bad.status, 400);
-  const r = await adminPost('settings-save', { shop_title: 'Blue', intro_text: 'Hello.', hero_image: '/images/placeholders/hero.svg' });
+  const r = await adminPost('settings-save', { shop_title: 'Blue', intro_text: 'Hello.', hero_image: '/images/placeholders/hero.svg', hero_image_mobile: '/images/placeholders/hero.svg', delivery_fee: '5', free_delivery_over: '150' });
   assert.equal(r.status, 200);
   const d = (await get('/api/shop/products')).body;
-  assert.equal(d.shop_title, 'Blue'); assert.equal(d.intro_text, 'Hello.'); assert.equal(d.hero_image, '/images/placeholders/hero.svg');
+  assert.equal(d.shop_title, 'Blue'); assert.equal(d.intro_text, 'Hello.');
+  assert.equal(d.hero_image, '/images/placeholders/hero.svg'); assert.equal(d.hero_image_mobile, '/images/placeholders/hero.svg');
+  await adminPost('settings-save', { shop_title: "Blue's Shop", intro_text: 'Hello.', hero_image: '', hero_image_mobile: '', delivery_fee: '5', free_delivery_over: '150' });
 });
-await test('a closed shop refuses checkout (sales code)', async () => {
-  await sql(`update bl_site_settings set value='false' where key='shop_open'`);
+await test('settings: closing the shop stops checkout', async () => {
+  await adminPost('settings-save', { shop_open: false, shop_title: "Blue's Shop", hero_image: '', hero_image_mobile: '', delivery_fee: '5', free_delivery_over: '150' });
+  assert.equal((await get('/api/shop/products')).body.shop_open, false);
   const r = await post('/api/checkout', { items: [{ product_id: P['placeholder-print-two'].id, qty: 1 }] });
   assert.equal(r.status, 409); assert.match(r.body.error, /closed/);
-  await sql(`update bl_site_settings set value='true' where key='shop_open'`);
+  await adminPost('settings-save', { shop_open: true, shop_title: "Blue's Shop", hero_image: '', hero_image_mobile: '', delivery_fee: '5', free_delivery_over: '150' });
+});
+await test('categories: add, rename, reorder; a category in use cannot be deleted', async () => {
+  const add = await adminPost('category-save', { name: 'Odd Socks', description: 'Pairs that do not match.' });
+  assert.equal(add.status, 200); assert.equal(add.body.category.slug, 'odd-socks');
+  assert.equal((await adminPost('category-save', { name: 'Odd Socks' })).status, 409);
+  const ren = await adminPost('category-save', { id: add.body.category.id, name: 'Odd Socks', description: 'Never a pair.' });
+  assert.equal(ren.body.category.description, 'Never a pair.');
+  let cats = (await adminGet('categories')).body.categories;
+  const ids = cats.map((c) => c.id).reverse();
+  await adminPost('category-reorder', { ids });
+  cats = (await adminGet('categories')).body.categories;
+  assert.deepEqual(cats.map((c) => c.id), ids);
+  const objects = cats.find((c) => c.slug === 'objects-and-oddities');
+  const del = await adminPost('category-delete', { id: objects.id });
+  assert.equal(del.status, 409); assert.match(del.body.error, /Move the 3 products/);
+  assert.equal((await adminPost('category-delete', { id: add.body.category.id })).status, 200);
+  assert.ok(!(await get('/api/shop/products')).body.categories.some((c) => c.slug === 'odd-socks'));
 });
 await test('discount codes can be added and switched off', async () => {
   await adminPost('discount-save', { code: 'spring 20', percent_off: 20 });
@@ -344,7 +387,7 @@ await test('discount codes can be added and switched off', async () => {
 });
 await test('logout clears the session', async () => {
   const r = await post('/api/admin/logout', {}, { cookie });
-  assert.match(r.headers.getSetCookie().join(' '), /bl_at=;.*Max-Age=0/);
+  assert.match(r.headers.getSetCookie().join(' '), /bl_session=;.*Max-Age=0/);
 });
 
 console.log(`\n${passed} passed, ${failures.length} failed`);

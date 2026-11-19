@@ -1,11 +1,21 @@
-<section class="hero" aria-label="Main picture">
-  <div class="hero-frame" id="hero">
-    <img id="hero-img" alt="" fetchpriority="high">
-  </div>
-</section>
 <div class="wrap">
-  <p class="intro" id="intro"><span class="placeholder">Intro text to come</span></p>
-</div>
-<section class="wrap works" aria-label="All pieces">
+  <div class="page-head">
+    <h1 class="page-title" id="list-title" data-fit="26">Shop all</h1>
+    <p class="page-sub" id="list-sub"></p>
+  </div>
+  <div class="toolbar">
+    <nav class="tabs" id="tabs" aria-label="Categories"></nav>
+    <div class="tools">
+      <label class="visually-hidden" for="q">Search the shop</label>
+      <input class="search" id="q" type="search" placeholder="Search the shop" autocomplete="off">
+      <label class="visually-hidden" for="sort">Sort</label>
+      <select class="sort" id="sort">
+        <option value="">Shop order</option>
+        <option value="new">Newest</option>
+        <option value="low">Price, low to high</option>
+        <option value="high">Price, high to low</option>
+      </select>
+    </div>
+  </div>
   <div class="grid" id="grid" aria-live="polite"></div>
-</section>
+</div>

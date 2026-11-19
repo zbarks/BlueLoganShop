@@ -1,20 +1,20 @@
 # Blue Logan Shop and Portal
 
-The shop (customer side) and the portal (Blue's side) for Blue Logan. **Enquiry only: no prices, no basket.** Each piece has its own page with an enquiry form. The top of the shop is one main picture with clickable points; each point opens a piece. The look follows Blue's own site: white, small spaced capitals, nothing loud.
+Blue's Shop: an illustrated shopfront by Blue on the home page (door, window and shelves are clickable), and behind it a normal, easy online shop with categories, prices, search, basket and Stripe Checkout. Any product can be set to "Enquire" instead of "Buy". Blue runs everything from the portal: products, prices, stock, photos, categories, the shop window, orders, refunds and messages.
 
-The shop name, the intro line, the main picture, titles, descriptions and photos are all placeholders for Blue to supply, and he can change every one of them in the portal. The "Blue Logan" menu link points at `MAIN_SITE_URL` (the main site is still to be built).
+Until Blue's illustration is uploaded, the home page shows the framework as a wireframe. The plan he draws to is in `ILLUSTRATION_FRAMEWORK.md`; the clickable areas live in `assets/shopfront/zones.json`.
 
-Sales code (Stripe Checkout, webhook, orders, refunds, discount codes) is kept in `api/` and tested, but nothing on the shop or in the portal uses it. It is there in case Blue ever wants to sell directly.
+Design: textured paper background, hand-lettered headings, Blue's turquoise and red used sparingly. "Permanent Marker" stands in for Blue's handwriting until his own font is made (swap the file in `assets/fonts` and `--hand` in `assets/css/shop.css`).
 
-Designed and built by Barker Digital. Same stack and patterns as the Hepple site (see `HEPPLE_PATTERNS.md`).
+On this platform rather than Shopify: it is already built and tested, has no monthly platform fee, and the illustrated shopfront is simpler to control here. Shopify remains an option if Blue ever needs its app ecosystem.
 
 ## Stack
 
 - Plain HTML, CSS and JS. No framework, no build step on Vercel.
 - Vercel functions in `/api` (Node 20+, ES modules). Helpers live in `api/_lib/` and are not routed.
-- `middleware.js` keeps every `/portal` page behind login.
-- Stripe Checkout (hosted), GBP, UK only: built and tested, switched off.
-- Supabase: Postgres with row level security, Auth for the one admin login, Storage for product photos.
+- `middleware.js` keeps every `/portal` page behind the admin login (signed cookie).
+- Stripe Checkout (hosted), GBP, UK delivery.
+- Supabase (shared Clientside project, `bl_` tables): Postgres with row level security, and Storage for photos.
 - Resend for email. PostHog for analytics, off until switched on and until the visitor accepts.
 
 ```
@@ -37,8 +37,8 @@ tools/                                     page builder, webhook redirect check
 ## Setup, in order
 
 1. **Install.** `npm install` (Node 20 or newer).
-2. **Supabase.** Create a NEW project for Blue (never use or change Hepple's). In SQL Editor, run the three files in `supabase/migrations/` in order. Every file is safe to run twice.
-3. **Admin login.** Supabase > Authentication > Users > Add user, with Blue's email and a password. Then Authentication > Sign In / Providers: turn OFF "Allow new users to sign up". Put the same email in `ADMIN_EMAIL`. Only that email can open the portal.
+2. **Supabase.** Blue's shop lives in the shared "BarkerDigtial Clientside" project (with Brioche and Cleanway). Run `supabase/migrations/0001`, `0002` and `0003` in its SQL Editor, in order. Everything is prefixed `bl_` (bucket `blue-logan-images`), so nothing of the other clients is touched. Safe to run twice.
+3. **Portal login.** One admin login, not Supabase Auth. Set `PORTAL_USERNAME`, `PORTAL_PASSWORD` and `SESSION_SECRET` (32+ random characters) in Vercel. The password is never in the code.
 4. **Vercel.** Create a new project from this folder (Framework: Other). Add every variable from `.env.example` in Settings > Environment Variables. Set `SITE_URL` to the exact final address of the shop (the one that does not redirect).
 5. **Resend.** Verify the sender domain, set `EMAIL_FROM` on that domain, `EMAIL_REPLY_TO` to Blue's inbox, then `EMAILS_ENABLED=true`.
 6. **PostHog (optional).** Set `POSTHOG_KEY`, then `POSTHOG_ENABLED=true`. Nothing is tracked until a visitor presses Accept.
@@ -58,7 +58,7 @@ Without Supabase keys the shop runs as a design preview with the placeholder pie
 
 `npm test` runs everything against local stand-ins (real Postgres via PGlite running the real migrations and RLS, plus mock Stripe and Resend), so no keys are needed:
 
-- API: public data never includes prices or stock, points on the main picture, enquiries and contact (saved, emailed, validated, honeypot), row level security, portal login (only the admin email, HttpOnly cookies, refresh), every portal page locked without login, adding a piece (photo upload, outside image links dropped, always enquiry, sold, point clamped to the picture), hidden pieces never public, reorder, settings. Plus the switched-off sales code: server pricing, Stripe session, signed and idempotent webhook, forged webhook, missing address, stock, refunds.
+- API: public data never includes prices or stock, points on the main picture, enquiries and contact (saved, emailed, validated, honeypot), row level security, portal login (wrong details refused, forged cookies refused, HttpOnly signed cookie), every portal page locked without login, adding a piece (photo upload, outside image links dropped, always enquiry, sold, point clamped to the picture), hidden pieces never public, reorder, settings. Plus the switched-off sales code: server pricing, Stripe session, signed and idempotent webhook, forged webhook, missing address, stock, refunds.
 - Browser journey (Playwright, 390px): shop, clicking a point opens the piece, enquiry, contact, portal login, add a piece and place it on the main picture, hide it, edit the shop name and intro, log out.
 - Screen widths: every page at 360, 390, 768 and 1440px for wrapping and sideways overflow.
 
@@ -70,19 +70,15 @@ The header and footer are shared. Edit `src/layout.html` or a body in `src/pages
 
 ## Rules kept in this build
 
-- Enquiry only. No prices anywhere.
-- No icons or drawings in placeholder images: plain grey with "Image to come".
-- The shop name stays on one line at every width (it scales down to fit).
-- Separate pages, no one-page anchor navigation. The menu (Shop, Contact, Blue Logan) is on every page.
+- "Shop all" is visible at the top of every page. Every clickable part of the shopfront is also reachable from the menu and category links. No intro animation.
+- Photos sit on a paper mount and are never cropped, skewed or warped; very large uploads are only scaled down.
+- The shop name and page titles stay on one line at every width.
+- Separate pages, no one-page anchor navigation.
 - Copy: no em dashes, plain words.
-- Photos are uploaded as they are. Very large files are scaled down in proportion; nothing is cropped, skewed or warped.
 
 ## TODO for Blue or Zach
 
-- Shop name or lettering (Blue). Placeholder: "Blue Logan Shop" in small capitals.
-- Intro line under the main picture (Blue). Placeholder until written.
-- The main picture (Blue), then a point placed for each piece.
-- Real pieces: titles, descriptions, photos (from Blue's shared album, not bluelogan.net).
-- Blue's font, if he has one, to replace Helvetica.
-- Final shop domain (`SITE_URL`) and the main site address (`MAIN_SITE_URL`).
-- Resend sender domain verification.
+- Blue: the shopfront illustration (computer and phone versions), to `ILLUSTRATION_FRAMEWORK.md`.
+- Blue: his handwriting as a font, his shop name lettering, a drawn basket icon.
+- Blue: real products, descriptions and prices (current prices are placeholders), and the delivery and returns wording.
+- Zach: final domain (`SITE_URL`), main site address (`MAIN_SITE_URL`), Stripe account and live keys, Resend sender domain.

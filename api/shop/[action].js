@@ -3,10 +3,10 @@
 //  inside Vercel's function limits.
 //
 //   GET  /api/shop/config            public config for the browser
-//   GET  /api/shop/products          published products (+ variants)
+//   GET  /api/shop/products          published products, categories and shop text
 //   GET  /api/shop/product?slug=     one published product
-//   POST /api/shop/quote             price a basket (sales are off; kept for later)
-//   GET  /api/shop/order?session_id= order confirmation (sales are off; kept for later)
+//   POST /api/shop/quote             price a basket (same code as checkout)
+//   GET  /api/shop/order?session_id= minimal confirmation for /order/thanks
 //   POST /api/shop/enquiry           product enquiry form
 //   POST /api/shop/contact           contact form
 //  Designed by Barker Digital
@@ -14,19 +14,32 @@
 
 import { env } from '../_lib/env.js';
 import { json, readJson, methodNotAllowed, queryOf, clampText, isEmail } from '../_lib/http.js';
-import { publicProducts, publicProduct, publicSettings, insertEnquiry, isDemo } from '../_lib/db.js';
+import { publicProducts, publicProduct, publicSettings, publicCategories, insertEnquiry, isDemo } from '../_lib/db.js';
 import { priceBasket } from '../_lib/basket.js';
 import { sendEnquiryAlert } from '../_lib/email.js';
 import { stripe } from '../_lib/stripe.js';
 
-// Fields the public is allowed to see. The shop is enquiry only, so no
-// prices or stock numbers leave the server; a piece is just "sold" or not.
+// Fields the public is allowed to see. Exact stock numbers stay on the
+// server; the shop only needs to know whether something has sold out.
 const point = (h) => (h && Number.isFinite(+h.x) && Number.isFinite(+h.y) ? { x: +h.x, y: +h.y } : null);
-const publicView = (p) => ({
-  id: p.id, slug: p.slug, title: p.title, description: p.description,
-  images: p.images || [], sold: p.stock === 0, hotspot: point(p.hotspot),
+function publicView(p, cats) {
+  const c = cats.find((x) => x.id === p.category_id);
+  const variants = (p.variants || []).map((v) => ({ id: v.id, label: v.label, price_pence: v.price_pence, sold_out: v.stock === 0 }));
+  return {
+    id: p.id, slug: p.slug, title: p.title, description: p.description,
+    images: p.images || [], mode: p.mode, price_pence: p.mode === 'buy' ? p.price_pence : null,
+    sold_out: p.mode === 'buy' && (variants.length ? variants.every((v) => v.sold_out) : p.stock === 0),
+    featured: !!p.is_featured, hotspot: point(p.hotspot),
+    category: c ? { slug: c.slug, name: c.name } : null,
+    variants: p.mode === 'buy' ? variants : [],
+  };
+}
+const shopText = (s) => ({
+  shop_title: s.shop_title || '', intro_text: s.intro_text || '',
+  hero_image: s.hero_image || '', hero_image_mobile: s.hero_image_mobile || '',
+  shop_open: s.shop_open !== false, delivery_note: s.delivery_note || '',
 });
-const shopText = (s) => ({ shop_title: s.shop_title || '', intro_text: s.intro_text || '', hero_image: s.hero_image || '' });
+const publicCategory = (c) => ({ slug: c.slug, name: c.name, description: c.description });
 
 async function handleForm(req, res, source) {
   if (req.method !== 'POST') return methodNotAllowed(res, 'POST');
@@ -76,16 +89,19 @@ export default async function handler(req, res) {
         });
 
       case 'products': {
-        const [products, settings] = await Promise.all([publicProducts(), publicSettings()]);
-        return json(res, 200, { products: products.filter((p) => p.is_published !== false).map(publicView), ...shopText(settings) });
+        const [products, settings, cats] = await Promise.all([publicProducts(), publicSettings(), publicCategories()]);
+        return json(res, 200, {
+          products: products.filter((p) => p.is_published !== false).map((p) => publicView(p, cats)),
+          categories: cats.map(publicCategory), ...shopText(settings),
+        });
       }
 
       case 'product': {
         const slug = String(q.slug || '').slice(0, 120);
         const p = slug && await publicProduct(slug);
         if (!p || p.is_published === false) return json(res, 404, { error: 'Not found' });
-        const settings = await publicSettings();
-        return json(res, 200, { product: publicView(p), ...shopText(settings) });
+        const [settings, cats] = await Promise.all([publicSettings(), publicCategories()]);
+        return json(res, 200, { product: publicView(p, cats), categories: cats.map(publicCategory), ...shopText(settings) });
       }
 
       case 'quote': {

@@ -1,15 +1,13 @@
 // =============================================================
-//  Portal API. Everything except login/refresh/logout/status requires
-//  the admin session cookie (see _lib/auth.js).
+//  Portal API. Everything except login, logout and status needs the
+//  signed admin session cookie (see _lib/auth.js).
 //  Designed by Barker Digital
 // =============================================================
 
 import { randomUUID } from 'node:crypto';
 import { env } from '../_lib/env.js';
 import { json, readJson, methodNotAllowed, queryOf, clampText } from '../_lib/http.js';
-import {
-  userFromToken, passwordGrant, refreshGrant, setSessionCookies, clearSessionCookies, accessToken, refreshToken,
-} from '../_lib/auth.js';
+import { authConfigured, checkLogin, setSessionCookie, clearSessionCookie, isLoggedIn } from '../_lib/auth.js';
 import * as db from '../_lib/db.js';
 import { stripe } from '../_lib/stripe.js';
 import { sendShippedEmail } from '../_lib/email.js';
@@ -24,8 +22,20 @@ function validImage(u) {
   return !!env.supabaseUrl && u.startsWith(`${env.supabaseUrl}/storage/v1/object/public/${db.BUCKET}/`);
 }
 
-// The shop is enquiry only: no price, no stock count. A piece is either
-// available or sold (stock 0). Mode is always "enquire".
+// "120", "120.5", "£120.50" -> 12050. Blank -> null. Invalid -> NaN.
+export function poundsToPence(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'number') return Number.isFinite(v) && v >= 0 ? Math.round(v * 100) : NaN;
+  const s = String(v).replace(/[£,\s]/g, '');
+  if (!s) return null;
+  if (!/^\d+(\.\d{1,2})?$/.test(s)) return NaN;
+  return Math.round(parseFloat(s) * 100);
+}
+function stockValue(v) {
+  if (v === null || v === undefined || String(v).trim() === '') return null;
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 0 && n <= 100000 ? n : NaN;
+}
 function cleanHotspot(h) {
   if (!h || h.x === undefined || h.y === undefined) return null;
   const x = Number(h.x), y = Number(h.y);
@@ -33,31 +43,42 @@ function cleanHotspot(h) {
   const c = (n) => Math.round(Math.max(0, Math.min(100, n)) * 10) / 10;
   return { x: c(x), y: c(y) };
 }
+const isUuid = (v) => typeof v === 'string' && /^[0-9a-f-]{36}$/i.test(v);
 
 function cleanProduct(b) {
   const errors = {};
+  const mode = b.mode === 'enquire' ? 'enquire' : 'buy';
   const row = {
     title: clampText(b.title, 120),
     description: clampText(b.description, 5000),
-    mode: 'enquire',
-    price_pence: null,
-    stock: b.sold ? 0 : null,
+    mode,
+    price_pence: poundsToPence(b.price),
+    stock: stockValue(b.stock),
     images: Array.isArray(b.images) ? b.images.filter(validImage).slice(0, 8) : [],
     is_published: !!b.is_published,
+    is_featured: !!b.is_featured,
+    category_id: isUuid(b.category_id) ? b.category_id : null,
     hotspot: cleanHotspot(b.hotspot),
   };
   row.slug = slugify(b.slug || row.title);
-  if (!row.title) errors.title = 'Please give the piece a name.';
+  if (!row.title) errors.title = 'Please give it a name.';
   if (!row.slug) errors.slug = 'The web address needs at least one letter or number.';
+  if (Number.isNaN(row.price_pence)) errors.price = 'Please enter a price like 25 or 24.50.';
+  if (mode === 'buy' && row.price_pence === null) errors.price = 'Something people can buy needs a price.';
+  if (Number.isNaN(row.stock)) errors.stock = 'Stock must be a whole number, or blank if you make them to order.';
   if (row.is_published && !row.images.length) errors.images = 'Add at least one photo before showing it in the shop.';
-  return { row, variants: [], errors };
+
+  const variants = (Array.isArray(b.variants) ? b.variants : []).slice(0, 12)
+    .filter((v) => v && String(v.label || '').trim())
+    .map((v) => ({ label: clampText(v.label, 80), price_pence: poundsToPence(v.price), stock: stockValue(v.stock) }));
+  if (variants.some((v) => Number.isNaN(v.price_pence) || Number.isNaN(v.stock))) errors.variants = 'Check the option prices and stock numbers.';
+  return { row, variants: mode === 'buy' ? variants : [], errors };
 }
 
 async function requireAdmin(req, res) {
-  if (!env.dbConfigured) { json(res, 503, { error: 'The portal is not connected to its database yet.' }); return null; }
-  const user = await userFromToken(accessToken(req));
-  if (!user) { json(res, 401, { error: 'Please log in again.' }); return null; }
-  return user;
+  if (!env.dbConfigured) { json(res, 503, { error: 'The portal is not connected to its database yet.' }); return false; }
+  if (!isLoggedIn(req)) { json(res, 401, { error: 'Please log in again.' }); return false; }
+  return true;
 }
 
 export default async function handler(req, res) {
@@ -66,37 +87,26 @@ export default async function handler(req, res) {
 
   try {
     // ---------- no session needed ----------
-    if (action === 'status') return json(res, 200, { configured: env.dbConfigured });
+    if (action === 'status') return json(res, 200, { configured: env.dbConfigured && authConfigured() });
 
     if (action === 'login') {
       if (!post) return methodNotAllowed(res, 'POST');
-      if (!env.dbConfigured) return json(res, 503, { error: 'The portal is not connected to its database yet.' });
+      if (!authConfigured()) return json(res, 503, { error: 'The portal login is not set up yet.' });
       const b = await readJson(req);
-      const email = clampText(b.email, 200).toLowerCase();
-      const session = email ? await passwordGrant(email, String(b.password || '').slice(0, 200)) : null;
-      // Right password but not a Blue Logan portal member (e.g. another client's login): same answer.
-      if (!session || !(await userFromToken(session.access_token))) return json(res, 401, { error: 'That email and password did not match.' });
-      setSessionCookies(res, session);
+      if (!checkLogin(b.username, b.password)) {
+        await new Promise((r) => setTimeout(r, 800));   // slows down password guessing
+        return json(res, 401, { error: 'That username and password did not match.' });
+      }
+      setSessionCookie(res);
       return json(res, 200, { ok: true });
     }
 
-    if (action === 'refresh') {
-      if (!post) return methodNotAllowed(res, 'POST');
-      const rt = refreshToken(req);
-      const session = rt && env.dbConfigured ? await refreshGrant(rt) : null;
-      if (!session || !(await userFromToken(session.access_token))) { clearSessionCookies(res); return json(res, 401, { error: 'Please log in.' }); }
-      setSessionCookies(res, session);
-      return json(res, 200, { ok: true });
-    }
-
-    if (action === 'logout') { clearSessionCookies(res); return json(res, 200, { ok: true }); }
+    if (action === 'logout') { clearSessionCookie(res); return json(res, 200, { ok: true }); }
 
     // ---------- everything below needs the admin ----------
-    const user = await requireAdmin(req, res);
-    if (!user) return;
+    if (!(await requireAdmin(req, res))) return;
 
     switch (action) {
-      case 'me': return json(res, 200, { email: user.email });
 
       case 'home': return json(res, 200, { ...(await db.counts()), webhookUrl: `${env.siteUrl}/api/stripe-webhook` });
 
@@ -230,14 +240,58 @@ export default async function handler(req, res) {
       case 'settings-save': {
         if (!post) return methodNotAllowed(res, 'POST');
         const b = await readJson(req);
-        const hero = typeof b.hero_image === 'string' && (b.hero_image === '' || validImage(b.hero_image)) ? b.hero_image : null;
-        if (hero === null) return json(res, 400, { error: 'That picture could not be used. Please upload it again.' });
+        const img = (v) => (typeof v === 'string' && (v === '' || validImage(v)) ? v : null);
+        const hero = img(b.hero_image), heroM = img(b.hero_image_mobile);
+        if (hero === null || heroM === null) return json(res, 400, { error: 'That picture could not be used. Please upload it again.' });
+        const fee = poundsToPence(b.delivery_fee), over = poundsToPence(b.free_delivery_over);
+        if (Number.isNaN(fee) || Number.isNaN(over)) return json(res, 400, { error: 'Delivery amounts must look like 5 or 4.95.' });
         await db.saveSettings({
+          shop_open: b.shop_open !== false,
           shop_title: clampText(b.shop_title, 80),
           intro_text: clampText(b.intro_text, 600),
-          hero_image: hero,
+          hero_image: hero, hero_image_mobile: heroM,
+          delivery_note: clampText(b.delivery_note, 500),
+          delivery_fee_pence: fee || 0,
+          free_delivery_over_pence: over || 0,
         });
         return json(res, 200, { settings: await db.allSettings() });
+      }
+
+      // ----- categories -----
+      case 'categories': {
+        const [cats, products] = await Promise.all([db.allCategories(), db.allProducts()]);
+        return json(res, 200, { categories: cats.map((c) => ({ ...c, count: products.filter((p) => p.category_id === c.id).length })) });
+      }
+      case 'category-save': {
+        if (!post) return methodNotAllowed(res, 'POST');
+        const b = await readJson(req);
+        const row = { name: clampText(b.name, 60), description: clampText(b.description, 300) };
+        row.slug = slugify(b.slug || row.name);
+        if (!row.name || !row.slug) return json(res, 400, { error: 'Please give the category a name.' });
+        try {
+          const saved = isUuid(b.id) ? await db.updateCategory(b.id, row)
+            : await db.insertCategory({ ...row, sort_order: (await db.maxCategoryOrder()) + 10 });
+          return json(res, 200, { category: saved });
+        } catch (e) {
+          if (e.status === 409 || /duplicate|unique/i.test(e.detail || '')) return json(res, 409, { error: 'There is already a category with that name.' });
+          throw e;
+        }
+      }
+      case 'category-delete': {
+        if (!post) return methodNotAllowed(res, 'POST');
+        const b = await readJson(req);
+        if (!isUuid(b.id)) return json(res, 400, { error: 'Category not found.' });
+        const used = (await db.allProducts()).filter((p) => p.category_id === b.id).length;
+        if (used) return json(res, 409, { error: `Move the ${used} product${used === 1 ? '' : 's'} in this category first.` });
+        await db.deleteCategory(b.id);
+        return json(res, 200, { ok: true });
+      }
+      case 'category-reorder': {
+        if (!post) return methodNotAllowed(res, 'POST');
+        const b = await readJson(req);
+        const ids = (Array.isArray(b.ids) ? b.ids : []).filter(isUuid).slice(0, 100);
+        for (let i = 0; i < ids.length; i++) await db.updateCategory(ids[i], { sort_order: (i + 1) * 10 });
+        return json(res, 200, { ok: true });
       }
 
       case 'discount-save': {

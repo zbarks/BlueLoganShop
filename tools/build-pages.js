@@ -18,10 +18,14 @@ const MAIN = (process.env.MAIN_SITE_URL || 'https://bluelogan.co.uk').replace(/\
 const layout = readFileSync(join(root, 'src/layout.html'), 'utf8');
 
 const pages = {
-  'shop.html':    { page: 'shop',     nav: 'shop',    hero: true,    title: 'Shop | Blue Logan', desc: 'Work by Blue Logan.' },
-  'product.html': { page: 'product',  nav: 'shop',    title: 'Shop | Blue Logan', desc: 'Work by Blue Logan.' },
-  'contact.html': { page: 'contact',  nav: 'contact', title: 'Contact | Blue Logan', desc: 'Contact Blue Logan.' },
-  '404.html':     { page: 'notfound', nav: '',        title: 'Page not found | Blue Logan', desc: 'Page not found.', noindex: true },
+  'index.html':                { page: 'home',    nav: '',        title: "Blue's Shop | Blue Logan", desc: 'A curious little world of wonderful things, by Blue Logan.' },
+  'shop.html':                 { page: 'shop',    nav: 'shop',    title: "Shop all | Blue's Shop", desc: 'Everything in Blue Logan\'s shop.' },
+  'product.html':              { page: 'product', nav: 'shop',    title: "Blue's Shop", desc: 'From Blue Logan\'s shop.' },
+  'basket.html':               { page: 'basket',  nav: 'basket',  title: "Basket | Blue's Shop", desc: 'Your basket.', noindex: true },
+  'order-thanks.html':         { page: 'thanks',  nav: '',        title: "Thank you | Blue's Shop", desc: 'Order confirmed.', noindex: true },
+  'contact.html':              { page: 'contact', nav: 'contact', title: "Contact | Blue's Shop", desc: 'Contact Blue Logan.' },
+  'delivery-and-returns.html': { page: 'info',    nav: '',        title: "Delivery and returns | Blue's Shop", desc: 'Delivery and returns.' },
+  '404.html':                  { page: 'notfound', nav: '',       title: "Nothing here | Blue's Shop", desc: 'Page not found.', noindex: true },
 };
 
 for (const [file, meta] of Object.entries(pages)) {
@@ -32,10 +36,12 @@ for (const [file, meta] of Object.entries(pages)) {
     .replaceAll('{{TITLE}}', meta.title)
     .replaceAll('{{DESC}}', meta.desc)
     .replaceAll('{{PAGE}}', meta.page)
-    .replaceAll('{{BODYCLASS}}', meta.hero ? ' class="has-hero"' : '')
+    
     .replaceAll('{{ROBOTS}}', meta.noindex ? '<meta name="robots" content="noindex">' : '')
     .replaceAll('{{CUR_SHOP}}', cur('shop'))
     .replaceAll('{{CUR_CONTACT}}', cur('contact'))
+    .replaceAll('{{CUR_BASKET}}', cur('basket'))
+    .replaceAll('{{CUR_SEARCH}}', '')
     .replaceAll('{{MAIN}}', MAIN);
   writeFileSync(join(root, file), html);
   console.log('built', file);

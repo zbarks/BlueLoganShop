@@ -40,9 +40,6 @@ export async function startSupabase({ port, root, anonKey, serviceKey, users }) 
     insert into public.enquiries values (1, 'brioche booking');
     create function public.touch_updated_at() returns trigger language plpgsql as $$ begin return new; end $$;`);
   for (const f of readdirSync(migDir).sort()) await db.exec(readFileSync(join(migDir, f), 'utf8'));
-  for (const [email, u] of Object.entries(users)) {
-    if (u.business) await db.query('insert into public.portal_members (user_id, business) values ($1, $2)', [u.id, u.business]);
-  }
   // Run a second time to prove every migration is safe to re-run.
   for (const f of readdirSync(migDir).sort()) await db.exec(readFileSync(join(migDir, f), 'utf8'));
 

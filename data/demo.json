@@ -1,98 +1,149 @@
 {
- "_note": "Design preview data, used only when Supabase is not configured. Mirrors supabase/migrations/0003_seed.sql.",
+ "_note": "Design preview data, used only when Supabase is not configured. Mirrors supabase/migrations/0003_seed.sql. Prices are placeholders.",
+ "categories": [
+  {
+   "id": "e2cb5055-0dc7-582c-be46-513e3a21a2b3",
+   "slug": "objects-and-oddities",
+   "name": "Objects & Oddities",
+   "description": "Ceramics, lamps, trays and unexpected things for the home.",
+   "sort_order": 10
+  },
+  {
+   "id": "2825b296-d701-5994-b190-9d25998efa6c",
+   "slug": "little-treasures",
+   "name": "Little Treasures",
+   "description": "Matchboxes, pins, coasters, cards and curious small gifts.",
+   "sort_order": 20
+  },
+  {
+   "id": "e7f852d6-ece9-56ee-9525-6df9fdb829ed",
+   "slug": "things-to-wear",
+   "name": "Things to Wear",
+   "description": "Clothing, scarves and limited pieces.",
+   "sort_order": 30
+  },
+  {
+   "id": "e857ab7a-0416-5cc3-b04c-fd29dff98dd7",
+   "slug": "paper-things",
+   "name": "Paper Things",
+   "description": "Prints, postcards, notebooks and illustrated stationery.",
+   "sort_order": 40
+  },
+  {
+   "id": "5ed52d24-2df9-5154-9ed1-7b51ae0415ad",
+   "slug": "special-editions",
+   "name": "Special Editions",
+   "description": "Collaborations, one-offs and limited releases.",
+   "sort_order": 50
+  }
+ ],
  "products": [
   {
    "id": "6177c26c-1b6b-5ff1-8002-4b1573e416db",
    "slug": "lampshade-faces",
-   "title": "Lampshade, faces",
+   "title": "Faces lampshade",
    "description": "Description to come.",
    "type": "print",
-   "price_pence": null,
+   "price_pence": 18000,
    "currency": "gbp",
-   "mode": "enquire",
+   "mode": "buy",
    "images": [
     "/images/works/lampshade-faces.jpg"
    ],
-   "stock": null,
+   "stock": 3,
    "is_published": true,
+   "is_featured": true,
    "sort_order": 10,
-   "hotspot": null
+   "hotspot": null,
+   "category_id": "e2cb5055-0dc7-582c-be46-513e3a21a2b3"
   },
   {
    "id": "17819bc1-1474-5d38-b778-8930ffd8f9db",
    "slug": "lampshade-party",
-   "title": "Lampshade, party",
+   "title": "Party lampshade",
    "description": "Description to come.",
    "type": "print",
-   "price_pence": null,
+   "price_pence": 16000,
    "currency": "gbp",
-   "mode": "enquire",
+   "mode": "buy",
    "images": [
     "/images/works/lampshade-party.jpg"
    ],
-   "stock": null,
+   "stock": 3,
    "is_published": true,
+   "is_featured": true,
    "sort_order": 20,
-   "hotspot": null
+   "hotspot": null,
+   "category_id": "e2cb5055-0dc7-582c-be46-513e3a21a2b3"
   },
   {
    "id": "f8e48046-3014-51d6-8170-7443da9c6dda",
    "slug": "vase",
-   "title": "Vase",
+   "title": "Blue faces vase",
    "description": "Description to come.",
    "type": "print",
-   "price_pence": null,
+   "price_pence": 24000,
    "currency": "gbp",
-   "mode": "enquire",
+   "mode": "buy",
    "images": [
     "/images/works/vase.jpg"
    ],
-   "stock": null,
+   "stock": 1,
    "is_published": true,
+   "is_featured": true,
    "sort_order": 30,
-   "hotspot": null
-  },
-  {
-   "id": "4034da3c-9718-5dc4-a4e5-024665657d48",
-   "slug": "ritas",
-   "title": "Rita's",
-   "description": "Description to come.",
-   "type": "print",
-   "price_pence": null,
-   "currency": "gbp",
-   "mode": "enquire",
-   "images": [
-    "/images/works/ritas.jpg"
-   ],
-   "stock": null,
-   "is_published": true,
-   "sort_order": 40,
-   "hotspot": null
+   "hotspot": null,
+   "category_id": "e2cb5055-0dc7-582c-be46-513e3a21a2b3"
   },
   {
    "id": "7f6c5ebf-ac6b-5268-8316-7916bafd92b7",
    "slug": "ritas-coaster",
-   "title": "Rita's coaster",
+   "title": "Rita's coasters",
    "description": "Description to come.",
    "type": "print",
-   "price_pence": null,
+   "price_pence": 1800,
    "currency": "gbp",
-   "mode": "enquire",
+   "mode": "buy",
    "images": [
     "/images/works/ritas-coaster.jpg"
    ],
-   "stock": null,
+   "stock": 40,
    "is_published": true,
+   "is_featured": false,
+   "sort_order": 40,
+   "hotspot": null,
+   "category_id": "2825b296-d701-5994-b190-9d25998efa6c"
+  },
+  {
+   "id": "4034da3c-9718-5dc4-a4e5-024665657d48",
+   "slug": "ritas",
+   "title": "Rita's print",
+   "description": "Description to come.",
+   "type": "print",
+   "price_pence": 4500,
+   "currency": "gbp",
+   "mode": "buy",
+   "images": [
+    "/images/works/ritas.jpg"
+   ],
+   "stock": 25,
+   "is_published": true,
+   "is_featured": false,
    "sort_order": 50,
-   "hotspot": null
+   "hotspot": null,
+   "category_id": "e857ab7a-0416-5cc3-b04c-fd29dff98dd7"
   }
  ],
  "variants": [],
  "settings": {
   "shop_open": true,
-  "shop_title": "Blue Logan Shop",
-  "intro_text": "",
-  "hero_image": "/images/works/desert-5-mural.jpg"
+  "shop_title": "Blue's Shop",
+  "intro_text": "A curious little world of wonderful things.",
+  "hero_image": "",
+  "hero_image_mobile": "",
+  "delivery_note": "UK delivery. Most orders are packed and sent within five working days.",
+  "delivery_fee_pence": 500,
+  "free_delivery_over_pence": 15000
  },
  "discounts": []
 }

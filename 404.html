@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Page not found | Blue Logan</title>
+<title>Nothing here | Blue's Shop</title>
 <meta name="description" content="Page not found.">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f3ecdf">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/permanent-marker-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/css/shop.css">
 <script src="/assets/js/shop.js" defer></script>
 </head>
@@ -15,31 +16,41 @@
 <a class="visually-hidden" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap header-row">
+    <!-- TODO(Blue): his own lettering for the shop name (editable in the portal under Settings). -->
+    <div class="wm-box"><a class="wordmark" href="/" data-shop-title data-fit="18">Blue's Shop</a></div>
     <nav class="main-nav" aria-label="Main">
-      <a href="/shop">Shop</a>
+      <a class="shop-all" href="/shop">Shop all</a>
+      <a href="/search">Search</a>
       <a href="/contact">Contact</a>
       <a href="https://bluelogan.co.uk" data-main-site="">Blue Logan</a>
     </nav>
-    <!-- TODO(Blue): placeholder name. Blue will write or draw this himself (editable in the portal under Settings). -->
-    <div class="wm-box"><a class="wordmark" href="/shop" data-shop-title data-fit="9">Blue Logan Shop</a></div>
+    <a class="basket-link" href="/basket" aria-label="Basket">
+      <!-- TODO(Blue): a basket drawn by Blue replaces this. -->
+      <svg class="basket-icon" viewBox="0 0 60 52" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 20h48l-6 26H12z"/><path d="M18 20 28 5M42 20 32 5"/><path d="M22 28v11M30 28v11M38 28v11"/></svg>
+      <span class="basket-count" data-basket-count data-n="0">0</span>
+    </a>
   </div>
 </header>
 <main id="main">
 <div class="wrap">
-  <div class="page">
-    <h1 class="page-title">Page not found</h1>
-    <p><a class="btn light" href="/shop">Go to the shop</a></p>
+  <div class="page-head">
+    <h1 class="page-title" data-fit="24">Nothing here</h1>
+    <p class="page-sub">That page has wandered off.</p>
+    <p style="margin-top:22px"><a class="btn" href="/shop">Shop all</a></p>
   </div>
 </div>
 </main>
 <footer class="site-footer">
   <div class="wrap footer-row">
+    <span class="footer-hand" data-shop-title>Blue's Shop</span>
     <nav aria-label="Footer">
-      <a href="/shop">Shop</a>
+      <a href="/shop">Shop all</a>
+      <a href="/search">Search</a>
+      <a href="/delivery-and-returns">Delivery and returns</a>
       <a href="/contact">Contact</a>
       <a href="https://bluelogan.co.uk" data-main-site="">Blue Logan</a>
+      <a href="https://barkerdigital.co.uk">Site by Barker Digital</a>
     </nav>
-    <a href="https://barkerdigital.co.uk">Site by Barker Digital</a>
   </div>
 </footer>
 </body>

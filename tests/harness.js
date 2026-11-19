@@ -17,6 +17,7 @@ Object.assign(process.env, {
   STRIPE_API_BASE: `http://localhost:${P.stripe}`,
   RESEND_API_KEY: 're_test', RESEND_API_BASE: `http://localhost:${P.resend}`, EMAILS_ENABLED: 'true',
   EMAIL_FROM: 'Blue Logan <orders@example.com>',
+  PORTAL_USERNAME: 'admin', PORTAL_PASSWORD: 'test-only-password', SESSION_SECRET: 'x'.repeat(64),
 });
 if (!demo) Object.assign(process.env, { SUPABASE_URL: `http://localhost:${P.supa}`, SUPABASE_ANON_KEY: 'anon-key', SUPABASE_SERVICE_ROLE_KEY: 'service-key' });
 

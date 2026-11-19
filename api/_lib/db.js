@@ -77,9 +77,10 @@ export async function publicProduct(slug) {
 
 const SETTING_DEFAULTS = {
   shop_open: true,
-  shop_title: 'Blue Logan Shop',   // TODO(Blue): placeholder, he will write this
+  shop_title: "Blue's Shop",       // TODO(Blue): placeholder lettering, he will draw this
   intro_text: '',                  // TODO(Blue): placeholder, he will write this
-  hero_image: '',                  // main picture with the clickable points
+  hero_image: '',                  // Blue's shopfront illustration (desktop)
+  hero_image_mobile: '',           // Blue's shopfront illustration (phone)
   delivery_note: 'UK delivery only.',
   delivery_fee_pence: 500,          // TODO(Blue): real delivery charges
   free_delivery_over_pence: 15000,  // TODO(Blue): confirm or remove
@@ -91,6 +92,24 @@ export async function publicSettings() {
   const out = { ...SETTING_DEFAULTS };
   for (const r of rows) out[r.key] = r.value;
   return out;
+}
+
+// ---------- categories ----------
+export async function publicCategories() {
+  if (isDemo()) return structuredClone((await demo()).categories || []);
+  return rest('bl_categories?select=*&order=sort_order.asc,created_at.asc', { role: 'anon' });
+}
+export const allCategories = () => rest('bl_categories?select=*&order=sort_order.asc,created_at.asc');
+export async function insertCategory(row) {
+  return (await rest('bl_categories', { method: 'POST', body: row, prefer: 'return=representation' }))[0];
+}
+export async function updateCategory(id, patch) {
+  return (await rest(`bl_categories?id=eq.${enc(id)}`, { method: 'PATCH', body: patch, prefer: 'return=representation' }))[0];
+}
+export const deleteCategory = (id) => rest(`bl_categories?id=eq.${enc(id)}`, { method: 'DELETE' });
+export async function maxCategoryOrder() {
+  const r = await rest('bl_categories?select=sort_order&order=sort_order.desc&limit=1');
+  return r.length ? r[0].sort_order : 0;
 }
 
 // ---------- checkout (service key, but still published only) ----------
@@ -227,9 +246,3 @@ export async function signedUpload(path) {
   };
 }
 
-// ---------- portal access (shared Clientside pattern) ----------
-export async function isPortalMember(userId, business = 'bluelogan') {
-  if (!userId) return false;
-  const rows = await rest(`portal_members?select=user_id&user_id=eq.${enc(userId)}&business=eq.${enc(business)}&limit=1`);
-  return rows.length > 0;
-}

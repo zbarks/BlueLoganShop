@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blue's Shop | Blue Logan</title>
+<meta name="description" content="A curious little world of wonderful things, by Blue Logan.">
+
+<meta name="theme-color" content="#f3ecdf">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/permanent-marker-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/css/shop.css">
+<script src="/assets/js/shop.js" defer></script>
+</head>
+<body data-page="home">
+<a class="visually-hidden" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap header-row">
+    <!-- TODO(Blue): his own lettering for the shop name (editable in the portal under Settings). -->
+    <div class="wm-box"><a class="wordmark" href="/" data-shop-title data-fit="18">Blue's Shop</a></div>
+    <nav class="main-nav" aria-label="Main">
+      <a class="shop-all" href="/shop">Shop all</a>
+      <a href="/search">Search</a>
+      <a href="/contact">Contact</a>
+      <a href="https://bluelogan.co.uk" data-main-site="">Blue Logan</a>
+    </nav>
+    <a class="basket-link" href="/basket" aria-label="Basket">
+      <!-- TODO(Blue): a basket drawn by Blue replaces this. -->
+      <svg class="basket-icon" viewBox="0 0 60 52" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 20h48l-6 26H12z"/><path d="M18 20 28 5M42 20 32 5"/><path d="M22 28v11M30 28v11M38 28v11"/></svg>
+      <span class="basket-count" data-basket-count data-n="0">0</span>
+    </a>
+  </div>
+</header>
+<main id="main">
+<section class="wrap shopfront-wrap" aria-label="Blue's shopfront">
+  <div class="shopfront" id="shopfront"></div>
+</section>
+<div class="wrap welcome">
+  <p id="intro" data-intro></p>
+  <a class="btn" href="/shop">Shop all</a>
+</div>
+<section class="wrap section" aria-labelledby="cats-h">
+  <div class="section-head"><h2 id="cats-h">Have a look around</h2><a href="/shop">Shop all &rarr;</a></div>
+  <div class="cats" id="cats"></div>
+</section>
+<section class="wrap section" aria-labelledby="win-h">
+  <div class="section-head"><h2 id="win-h">In the window</h2><a href="/shop">See everything &rarr;</a></div>
+  <div class="grid" id="window-grid"></div>
+</section>
+</main>
+<footer class="site-footer">
+  <div class="wrap footer-row">
+    <span class="footer-hand" data-shop-title>Blue's Shop</span>
+    <nav aria-label="Footer">
+      <a href="/shop">Shop all</a>
+      <a href="/search">Search</a>
+      <a href="/delivery-and-returns">Delivery and returns</a>
+      <a href="/contact">Contact</a>
+      <a href="https://bluelogan.co.uk" data-main-site="">Blue Logan</a>
+      <a href="https://barkerdigital.co.uk">Site by Barker Digital</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

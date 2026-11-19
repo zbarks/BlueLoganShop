@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Basket | Blue's Shop</title>
+<meta name="description" content="Your basket.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3ecdf">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/permanent-marker-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/css/shop.css">
+<script src="/assets/js/shop.js" defer></script>
+</head>
+<body data-page="basket">
+<a class="visually-hidden" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap header-row">
+    <!-- TODO(Blue): his own lettering for the shop name (editable in the portal under Settings). -->
+    <div class="wm-box"><a class="wordmark" href="/" data-shop-title data-fit="18">Blue's Shop</a></div>
+    <nav class="main-nav" aria-label="Main">
+      <a class="shop-all" href="/shop">Shop all</a>
+      <a href="/search">Search</a>
+      <a href="/contact">Contact</a>
+      <a href="https://bluelogan.co.uk" data-main-site="">Blue Logan</a>
+    </nav>
+    <a class="basket-link" href="/basket" aria-current="page" aria-label="Basket">
+      <!-- TODO(Blue): a basket drawn by Blue replaces this. -->
+      <svg class="basket-icon" viewBox="0 0 60 52" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 20h48l-6 26H12z"/><path d="M18 20 28 5M42 20 32 5"/><path d="M22 28v11M30 28v11M38 28v11"/></svg>
+      <span class="basket-count" data-basket-count data-n="0">0</span>
+    </a>
+  </div>
+</header>
+<main id="main">
+<div class="wrap">
+  <div class="page-head"><h1 class="page-title" data-fit="26">Your basket</h1></div>
+  <div id="basket" aria-live="polite"></div>
+</div>
+</main>
+<footer class="site-footer">
+  <div class="wrap footer-row">
+    <span class="footer-hand" data-shop-title>Blue's Shop</span>
+    <nav aria-label="Footer">
+      <a href="/shop">Shop all</a>
+      <a href="/search">Search</a>
+      <a href="/delivery-and-returns">Delivery and returns</a>
+      <a href="/contact">Contact</a>
+      <a href="https://bluelogan.co.uk" data-main-site="">Blue Logan</a>
+      <a href="https://barkerdigital.co.uk">Site by Barker Digital</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

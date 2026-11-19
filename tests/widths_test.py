@@ -2,7 +2,7 @@
 Long piece names typed by Blue are allowed to wrap (fit-wrap) rather than run off a phone screen."""
 import sys
 from playwright.sync_api import sync_playwright
-pages = ['/shop','/shop/vase','/shop/lampshade-faces','/contact','/nope','/portal/login']
+pages = ['/','/shop','/category/objects-and-oddities','/search','/shop/vase','/basket','/contact','/delivery-and-returns','/order/thanks','/nope','/portal/login']
 widths=[360,390,768,1440]
 problems=[]
 with sync_playwright() as p:
@@ -16,7 +16,7 @@ with sync_playwright() as p:
               const out = [];
               const doc = document.documentElement;
               if (doc.scrollWidth > window.innerWidth + 1) out.push('page overflows horizontally: ' + doc.scrollWidth);
-              const keys = [...document.querySelectorAll('.wordmark, h1, .page-title, .btn, .main-nav a, .p-brand, .card-title, .spot-label')];
+              const keys = [...document.querySelectorAll('.wordmark, h1, .page-title, .btn, .main-nav a, .p-brand, .cat-name, .section-head h2, .footer-hand, .zone[data-kind=sign] .zone-label')];
               for (const el of keys) {
                 const rect = el.getBoundingClientRect();
                 if (!rect.width) continue;
@@ -27,8 +27,8 @@ with sync_playwright() as p:
                 if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).display !== 'inline') out.push('clipped: ' + el.className + ' "' + el.textContent.trim().slice(0,30)+'"');
                 if (rect.right > window.innerWidth + 1) out.push('off screen: ' + el.className + ' "' + el.textContent.trim().slice(0,30)+'"');
               }
-              const home = [...document.querySelectorAll('.main-nav a')].find(a => a.textContent.trim() === 'Blue Logan');
-              if (location.pathname.indexOf('/portal') !== 0 && (!home || !home.getBoundingClientRect().width)) out.push('no visible Blue Logan link');
+              const all = document.querySelector('.main-nav .shop-all');
+              if (location.pathname.indexOf('/portal') !== 0 && (!all || !all.getBoundingClientRect().width)) out.push('no visible Shop all button');
               return out;
             }""")
             for x in r: problems.append(f'{w}px {path}: {x}')

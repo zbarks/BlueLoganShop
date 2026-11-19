@@ -1,8 +1,7 @@
 -- =============================================================
 --  Blue Logan shop: schema
---  The shop is enquiry only for now: no prices are shown. The order,
---  stock and Stripe parts are kept, switched off, in case Blue ever
---  wants to sell directly.
+--  A proper shop: prices, stock, basket and Stripe Checkout. Any piece
+--  can instead be set to "Enquire" (no price shown, enquiry form).
 --  Lives in the shared "BarkerDigtial Clientside" Supabase project,
 --  next to Brioche and Cleanway. Every table, function, index and the
 --  storage bucket is prefixed bl_ / blue-logan- so nothing can clash
@@ -12,6 +11,18 @@
 -- =============================================================
 
 -- gen_random_uuid() is built into Postgres 13+, no extension needed.
+
+-- -------------------------------------------------------------
+--  Categories (Blue can add, rename and reorder these in the portal)
+-- -------------------------------------------------------------
+create table if not exists public.bl_categories (
+  id          uuid primary key default gen_random_uuid(),
+  slug        text not null unique check (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
+  name        text not null,
+  description text not null default '',
+  sort_order  integer not null default 0,
+  created_at  timestamptz not null default now()
+);
 
 -- -------------------------------------------------------------
 --  Products
@@ -31,7 +42,9 @@ create table if not exists public.bl_products (
   images       text[] not null default '{}',
   stock        integer check (stock is null or stock >= 0),
   is_published boolean not null default false,
-  hotspot      jsonb,          -- {"x": 0-100, "y": 0-100}: where this piece sits on the main picture
+  hotspot      jsonb,          -- {"x": 0-100, "y": 0-100}: optional point on the shopfront picture
+  category_id  uuid references public.bl_categories(id) on delete set null,
+  is_featured  boolean not null default false,   -- shown in the shop window
   sort_order   integer not null default 0,
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now(),
@@ -40,6 +53,7 @@ create table if not exists public.bl_products (
   constraint products_max_images check (coalesce(array_length(images, 1), 0) <= 8)
 );
 create index if not exists bl_products_public_idx on public.bl_products (is_published, sort_order);
+create index if not exists bl_products_category_idx on public.bl_products (category_id);
 
 -- Optional sizes or finishes. price_pence null = use the product price.
 create table if not exists public.bl_product_variants (
@@ -124,12 +138,17 @@ create table if not exists public.bl_discount_codes (
 --  variants and a short list of public settings. Nothing else.
 --  Server routes use the service role key, which bypasses RLS.
 -- -------------------------------------------------------------
+alter table public.bl_categories       enable row level security;
 alter table public.bl_products         enable row level security;
 alter table public.bl_product_variants enable row level security;
 alter table public.bl_orders           enable row level security;
 alter table public.bl_site_settings    enable row level security;
 alter table public.bl_enquiries        enable row level security;
 alter table public.bl_discount_codes   enable row level security;
+
+drop policy if exists "public reads categories" on public.bl_categories;
+create policy "public reads categories" on public.bl_categories
+  for select to anon, authenticated using (true);
 
 drop policy if exists "public reads published products" on public.bl_products;
 create policy "public reads published products" on public.bl_products
@@ -144,11 +163,11 @@ create policy "public reads variants of published products" on public.bl_product
 drop policy if exists "public reads public settings" on public.bl_site_settings;
 create policy "public reads public settings" on public.bl_site_settings
   for select to anon, authenticated
-  using (key in ('shop_open','delivery_note','delivery_fee_pence','free_delivery_over_pence','shop_title','intro_text','hero_image'));
+  using (key in ('shop_open','delivery_note','delivery_fee_pence','free_delivery_over_pence','shop_title','intro_text','hero_image','hero_image_mobile'));
 
 -- No policies on orders, enquiries or discount_codes: anon gets nothing.
 -- Belt and braces: remove write grants from the public roles everywhere.
-revoke insert, update, delete on public.bl_products, public.bl_product_variants, public.bl_orders,
+revoke insert, update, delete on public.bl_categories, public.bl_products, public.bl_product_variants, public.bl_orders,
   public.bl_site_settings, public.bl_enquiries, public.bl_discount_codes from anon, authenticated;
 
 -- -------------------------------------------------------------
@@ -230,5 +249,7 @@ end $$;
 revoke all on function public.bl_set_product_order(uuid[]) from public, anon, authenticated;
 grant execute on function public.bl_set_product_order(uuid[]) to service_role;
 
--- Safe upgrade for a database created before the hotspot column existed.
+-- Safe upgrades for a database created before these columns existed.
 alter table public.bl_products add column if not exists hotspot jsonb;
+alter table public.bl_products add column if not exists category_id uuid references public.bl_categories(id) on delete set null;
+alter table public.bl_products add column if not exists is_featured boolean not null default false;

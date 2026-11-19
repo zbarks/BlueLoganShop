@@ -1,65 +1,61 @@
 // =============================================================
-//  Portal auth: Supabase Auth (email + password), one admin.
+//  Portal login: one username and password, set in Vercel as
+//  PORTAL_USERNAME and PORTAL_PASSWORD (never written in the code).
 //
-//  The browser never holds a token. /api/admin/login exchanges the
-//  password with Supabase and sets two HttpOnly, SameSite=Strict cookies:
-//    bl_at  access token  (about an hour)
-//    bl_rt  refresh token (30 days)
-//  Every admin API call and every /portal page (see middleware.js)
-//  checks bl_at with Supabase, and the user must have a row in the shared
-//  public.portal_members table with business 'bluelogan' (the same pattern
-//  Cleanway uses in the Clientside project). A Brioche or Cleanway login
-//  can never open Blue's portal.
+//  A correct login gets a signed session cookie (bl_session):
+//  HttpOnly, SameSite=Strict, Secure, 12 hours. The signature uses
+//  SESSION_SECRET, so the cookie cannot be forged or edited.
+//  middleware.js checks the same cookie before any /portal page.
 //  Designed by Barker Digital
 // =============================================================
 
-import { env } from './env.js';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { getCookie } from './http.js';
-import { isPortalMember } from './db.js';
 
-const authFetch = (path, opts = {}) => fetch(`${env.supabaseUrl}/auth/v1/${path}`, {
-  ...opts,
-  headers: { apikey: env.supabaseAnon, 'Content-Type': 'application/json', ...(opts.headers || {}) },
+const COOKIE = 'bl_session';
+const HOURS = 12;
+
+const cfg = () => ({
+  user: process.env.PORTAL_USERNAME || '',
+  pass: process.env.PORTAL_PASSWORD || '',
+  secret: process.env.SESSION_SECRET || '',
 });
+export const authConfigured = () => { const c = cfg(); return !!(c.user && c.pass && c.secret.length >= 32); };
 
-export async function userFromToken(token) {
-  if (!token || !env.supabaseUrl) return null;
-  try {
-    const r = await authFetch('user', { headers: { Authorization: `Bearer ${token}` } });
-    if (!r.ok) return null;
-    const user = await r.json();
-    return (await isPortalMember(user.id)) ? user : null;
-  } catch { return null; }
+function same(a, b) {
+  const x = Buffer.from(String(a)), y = Buffer.from(String(b));
+  return x.length === y.length && timingSafeEqual(x, y);
+}
+const b64 = (buf) => Buffer.from(buf).toString('base64url');
+const sign = (payload, secret) => b64(createHmac('sha256', secret).update(payload).digest());
+
+export function checkLogin(username, password) {
+  const c = cfg();
+  if (!authConfigured()) return false;
+  // Both compared in constant time, and both always compared.
+  const u = same(String(username || '').trim().toLowerCase(), c.user.toLowerCase());
+  const p = same(String(password || ''), c.pass);
+  return u && p;
 }
 
-export async function passwordGrant(email, password) {
-  const r = await authFetch('token?grant_type=password', { method: 'POST', body: JSON.stringify({ email, password }) });
-  return r.ok ? r.json() : null;
+export function makeSession() {
+  const payload = b64(JSON.stringify({ exp: Date.now() + HOURS * 3600 * 1000 }));
+  return `${payload}.${sign(payload, cfg().secret)}`;
 }
 
-export async function refreshGrant(refreshToken) {
-  const r = await authFetch('token?grant_type=refresh_token', { method: 'POST', body: JSON.stringify({ refresh_token: refreshToken }) });
-  return r.ok ? r.json() : null;
+export function verifySession(token) {
+  const c = cfg();
+  if (!token || !authConfigured()) return false;
+  const [payload, sig] = String(token).split('.');
+  if (!payload || !sig || !same(sig, sign(payload, c.secret))) return false;
+  try { return JSON.parse(Buffer.from(payload, 'base64url').toString()).exp > Date.now(); } catch { return false; }
 }
 
-function cookie(name, value, maxAge, secure) {
-  return `${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure ? '; Secure' : ''}`;
+const secure = () => !/^http:\/\/(localhost|127\.0\.0\.1)/.test(process.env.SITE_URL || '');
+export function setSessionCookie(res) {
+  res.setHeader('Set-Cookie', `${COOKIE}=${makeSession()}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${HOURS * 3600}${secure() ? '; Secure' : ''}`);
 }
-
-const isSecure = () => !/^http:\/\/(localhost|127\.0\.0\.1)/.test(env.siteUrl || '');
-
-export function setSessionCookies(res, session) {
-  const s = isSecure();
-  res.setHeader('Set-Cookie', [
-    cookie('bl_at', session.access_token, Math.max(60, (session.expires_in || 3600) - 60), s),
-    cookie('bl_rt', session.refresh_token, 60 * 60 * 24 * 30, s),
-  ]);
+export function clearSessionCookie(res) {
+  res.setHeader('Set-Cookie', `${COOKIE}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0${secure() ? '; Secure' : ''}`);
 }
-
-export function clearSessionCookies(res) {
-  const s = isSecure();
-  res.setHeader('Set-Cookie', [cookie('bl_at', '', 0, s), cookie('bl_rt', '', 0, s)]);
-}
-
-export const accessToken = (req) => getCookie(req, 'bl_at');
-export const refreshToken = (req) => getCookie(req, 'bl_rt');
+export const isLoggedIn = (req) => verifySession(getCookie(req, COOKIE));
