@@ -19,16 +19,8 @@
       "destination": "/product.html"
     },
     {
-      "source": "/order/thanks",
-      "destination": "/order-thanks.html"
-    },
-    {
       "source": "/portal/products/:id",
       "destination": "/portal/product-edit.html"
-    },
-    {
-      "source": "/portal/orders/:id",
-      "destination": "/portal/order.html"
     }
   ],
   "headers": [

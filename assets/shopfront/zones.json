@@ -1,29 +1,5 @@
 {
-  "_about": "The clickable parts of Blue's shopfront illustration. Positions are percentages of the picture (x, y = top-left corner; w, h = size). The same zones are drawn as a wireframe until Blue's artwork is uploaded. See ILLUSTRATION_FRAMEWORK.md.",
-  "desktop": {
-    "canvas": { "width": 2400, "height": 1350 },
-    "zones": [
-      { "id": "sign",    "kind": "sign",     "label": "Shop sign",          "x": 28, "y": 4,  "w": 44, "h": 13 },
-      { "id": "upper-left",  "kind": "category", "category": "things-to-wear",       "label": "Things to Wear",     "x": 8,  "y": 21, "w": 24, "h": 17 },
-      { "id": "upper-right", "kind": "category", "category": "special-editions",     "label": "Special Editions",   "x": 68, "y": 21, "w": 24, "h": 17 },
-      { "id": "window",  "kind": "window",   "label": "In the window",      "x": 6,  "y": 44, "w": 32, "h": 44 },
-      { "id": "door",    "kind": "door",     "label": "Come in: shop all",  "x": 41, "y": 38, "w": 18, "h": 56 },
-      { "id": "shelf-1", "kind": "category", "category": "objects-and-oddities", "label": "Objects & Oddities", "x": 62, "y": 44, "w": 32, "h": 14 },
-      { "id": "shelf-2", "kind": "category", "category": "little-treasures",     "label": "Little Treasures",   "x": 62, "y": 59, "w": 32, "h": 14 },
-      { "id": "shelf-3", "kind": "category", "category": "paper-things",         "label": "Paper Things",       "x": 62, "y": 74, "w": 32, "h": 14 }
-    ]
-  },
-  "mobile": {
-    "canvas": { "width": 1080, "height": 1440 },
-    "zones": [
-      { "id": "sign",    "kind": "sign",     "label": "Shop sign",          "x": 10, "y": 3,  "w": 80, "h": 9 },
-      { "id": "upper-left",  "kind": "category", "category": "things-to-wear",       "label": "Things to Wear",     "x": 6,  "y": 15, "w": 42, "h": 12 },
-      { "id": "upper-right", "kind": "category", "category": "special-editions",     "label": "Special Editions",   "x": 52, "y": 15, "w": 42, "h": 12 },
-      { "id": "window",  "kind": "window",   "label": "In the window",      "x": 6,  "y": 31, "w": 50, "h": 30 },
-      { "id": "door",    "kind": "door",     "label": "Come in: shop all",  "x": 61, "y": 31, "w": 33, "h": 30 },
-      { "id": "shelf-1", "kind": "category", "category": "objects-and-oddities", "label": "Objects & Oddities", "x": 6,  "y": 65, "w": 88, "h": 9 },
-      { "id": "shelf-2", "kind": "category", "category": "little-treasures",     "label": "Little Treasures",   "x": 6,  "y": 76, "w": 88, "h": 9 },
-      { "id": "shelf-3", "kind": "category", "category": "paper-things",         "label": "Paper Things",       "x": 6,  "y": 87, "w": 88, "h": 9 }
-    ]
-  }
+  "_about": "Blue's shopfront drawing has one blank spot (the window) where the site shows the products ticked 'In the shop window'. Positions are percentages of the drawing: x, y = top-left corner of the blank spot; w, h = its size. See ILLUSTRATION_FRAMEWORK.md.",
+  "desktop": { "canvas": { "width": 2400, "height": 1350 }, "window": { "x": 34, "y": 34, "w": 32, "h": 48 } },
+  "mobile":  { "canvas": { "width": 1080, "height": 1440 }, "window": { "x": 18, "y": 36, "w": 64, "h": 40 } }
 }

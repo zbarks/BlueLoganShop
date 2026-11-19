@@ -1,5 +1,5 @@
 {
- "_note": "Design preview data, used only when Supabase is not configured. Mirrors supabase/migrations/0003_seed.sql. Prices are placeholders.",
+ "_note": "Design preview data, used only when Supabase is not configured. Mirrors supabase/migrations/0003_seed.sql.",
  "categories": [
   {
    "id": "e2cb5055-0dc7-582c-be46-513e3a21a2b3",
@@ -44,13 +44,13 @@
    "title": "Faces lampshade",
    "description": "Description to come.",
    "type": "print",
-   "price_pence": 18000,
+   "price_pence": null,
    "currency": "gbp",
-   "mode": "buy",
+   "mode": "enquire",
    "images": [
     "/images/works/lampshade-faces.jpg"
    ],
-   "stock": 3,
+   "stock": null,
    "is_published": true,
    "is_featured": true,
    "sort_order": 10,
@@ -63,13 +63,13 @@
    "title": "Party lampshade",
    "description": "Description to come.",
    "type": "print",
-   "price_pence": 16000,
+   "price_pence": null,
    "currency": "gbp",
-   "mode": "buy",
+   "mode": "enquire",
    "images": [
     "/images/works/lampshade-party.jpg"
    ],
-   "stock": 3,
+   "stock": null,
    "is_published": true,
    "is_featured": true,
    "sort_order": 20,
@@ -82,13 +82,13 @@
    "title": "Blue faces vase",
    "description": "Description to come.",
    "type": "print",
-   "price_pence": 24000,
+   "price_pence": null,
    "currency": "gbp",
-   "mode": "buy",
+   "mode": "enquire",
    "images": [
     "/images/works/vase.jpg"
    ],
-   "stock": 1,
+   "stock": null,
    "is_published": true,
    "is_featured": true,
    "sort_order": 30,
@@ -101,13 +101,13 @@
    "title": "Rita's coasters",
    "description": "Description to come.",
    "type": "print",
-   "price_pence": 1800,
+   "price_pence": null,
    "currency": "gbp",
-   "mode": "buy",
+   "mode": "enquire",
    "images": [
     "/images/works/ritas-coaster.jpg"
    ],
-   "stock": 40,
+   "stock": null,
    "is_published": true,
    "is_featured": false,
    "sort_order": 40,
@@ -120,13 +120,13 @@
    "title": "Rita's print",
    "description": "Description to come.",
    "type": "print",
-   "price_pence": 4500,
+   "price_pence": null,
    "currency": "gbp",
-   "mode": "buy",
+   "mode": "enquire",
    "images": [
     "/images/works/ritas.jpg"
    ],
-   "stock": 25,
+   "stock": null,
    "is_published": true,
    "is_featured": false,
    "sort_order": 50,

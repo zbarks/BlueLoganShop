@@ -1,10 +1,10 @@
 -- =============================================================
 --  Blue's Shop: settings, categories and starting products
 --
---  TODO(Blue): everything here is a starting point. Product names,
---  descriptions and PRICES are placeholders (marked below). The
---  shopfront illustration, the shop name lettering and the intro are
---  Blue's to make. All of it can be changed in the portal.
+--  TODO(Blue): everything here is a starting point. The shop is
+--  enquiry only (no prices). Product names and descriptions are
+--  placeholders. The shopfront drawing, the shop name lettering and the
+--  intro are Blue's to make. All of it can be changed in the portal.
 --  Photos are Blue's, resized only. Never hot-link bluelogan.net.
 -- =============================================================
 
@@ -28,15 +28,15 @@ insert into public.bl_categories (slug, name, description, sort_order) values
   ('special-editions',     'Special Editions',   'Collaborations, one-offs and limited releases.', 50)
 on conflict (slug) do nothing;
 
--- TODO(Blue): placeholder names, descriptions and prices.
+-- TODO(Blue): placeholder names and descriptions. Enquiry only: no prices.
 insert into public.bl_products (slug, title, description, mode, price_pence, stock, images, is_published, is_featured, sort_order, category_id)
-select v.slug, v.title, 'Description to come.', 'buy', v.price, v.stock, array[v.img], true, v.featured, v.sort, c.id
+select v.slug, v.title, 'Description to come.', 'enquire', null, null, array[v.img], true, v.featured, v.sort, c.id
 from (values
-  ('lampshade-faces', 'Faces lampshade',      18000, 3,  '/images/works/lampshade-faces.jpg', true,  10, 'objects-and-oddities'),
-  ('lampshade-party', 'Party lampshade',      16000, 3,  '/images/works/lampshade-party.jpg', true,  20, 'objects-and-oddities'),
-  ('vase',            'Blue faces vase',      24000, 1,  '/images/works/vase.jpg',            true,  30, 'objects-and-oddities'),
-  ('ritas-coaster',   'Rita''s coasters',      1800, 40, '/images/works/ritas-coaster.jpg',   false, 40, 'little-treasures'),
-  ('ritas',           'Rita''s print',         4500, 25, '/images/works/ritas.jpg',           false, 50, 'paper-things')
-) as v(slug, title, price, stock, img, featured, sort, cat)
+  ('lampshade-faces', 'Faces lampshade',  '/images/works/lampshade-faces.jpg', true,  10, 'objects-and-oddities'),
+  ('lampshade-party', 'Party lampshade',  '/images/works/lampshade-party.jpg', true,  20, 'objects-and-oddities'),
+  ('vase',            'Blue faces vase',  '/images/works/vase.jpg',            true,  30, 'objects-and-oddities'),
+  ('ritas-coaster',   'Rita''s coasters', '/images/works/ritas-coaster.jpg',   false, 40, 'little-treasures'),
+  ('ritas',           'Rita''s print',    '/images/works/ritas.jpg',           false, 50, 'paper-things')
+) as v(slug, title, img, featured, sort, cat)
 join public.bl_categories c on c.slug = v.cat
 on conflict (slug) do nothing;

@@ -1,8 +1,10 @@
 # Blue Logan Shop and Portal
 
-Blue's Shop: an illustrated shopfront by Blue on the home page (door, window and shelves are clickable), and behind it a normal, easy online shop with categories, prices, search, basket and Stripe Checkout. Any product can be set to "Enquire" instead of "Buy". Blue runs everything from the portal: products, prices, stock, photos, categories, the shop window, orders, refunds and messages.
+Blue's Shop: Blue's drawing of his shop on the home page, with one blank spot (the window) where the products he picks take turns. Behind it, a simple shop with categories and search. **Enquiry only: no prices, no basket.** Every product has an enquiry form that emails Blue. Blue runs everything from the portal: products, photos, categories, the shop window, sold, messages, and the drawing itself.
 
-Until Blue's illustration is uploaded, the home page shows the framework as a wireframe. The plan he draws to is in `ILLUSTRATION_FRAMEWORK.md`; the clickable areas live in `assets/shopfront/zones.json`.
+Until Blue's drawing is uploaded, the home page shows a dashed placeholder with the blank spot already working. The drawing guide is `ILLUSTRATION_FRAMEWORK.md`; the spot's position lives in `assets/shopfront/zones.json`.
+
+The Stripe checkout, orders, refunds and discount code code is kept in `api/` and tested, but nothing on the site or in the portal uses it, in case Blue ever wants to sell directly.
 
 Design: textured paper background, hand-lettered headings, Blue's turquoise and red used sparingly. "Permanent Marker" stands in for Blue's handwriting until his own font is made (swap the file in `assets/fonts` and `--hand` in `assets/css/shop.css`).
 
@@ -70,7 +72,8 @@ The header and footer are shared. Edit `src/layout.html` or a body in `src/pages
 
 ## Rules kept in this build
 
-- "Shop all" is visible at the top of every page. Every clickable part of the shopfront is also reachable from the menu and category links. No intro animation.
+- "Shop all" is visible at the top of every page. No intro animation. Only the window spot on the drawing is clickable.
+- Enquiry only. No prices anywhere.
 - Photos sit on a paper mount and are never cropped, skewed or warped; very large uploads are only scaled down.
 - The shop name and page titles stay on one line at every width.
 - Separate pages, no one-page anchor navigation.
@@ -78,7 +81,7 @@ The header and footer are shared. Edit `src/layout.html` or a body in `src/pages
 
 ## TODO for Blue or Zach
 
-- Blue: the shopfront illustration (computer and phone versions), to `ILLUSTRATION_FRAMEWORK.md`.
-- Blue: his handwriting as a font, his shop name lettering, a drawn basket icon.
-- Blue: real products, descriptions and prices (current prices are placeholders), and the delivery and returns wording.
-- Zach: final domain (`SITE_URL`), main site address (`MAIN_SITE_URL`), Stripe account and live keys, Resend sender domain.
+- Blue: the shopfront drawing (computer and phone versions) with the blank spot, to `ILLUSTRATION_FRAMEWORK.md`.
+- Blue: his handwriting as a font, and his shop name lettering.
+- Blue: real products, names and descriptions.
+- Zach: final domain (`SITE_URL`), main site address (`MAIN_SITE_URL`), Resend sender domain.

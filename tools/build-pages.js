@@ -21,10 +21,7 @@ const pages = {
   'index.html':                { page: 'home',    nav: '',        title: "Blue's Shop | Blue Logan", desc: 'A curious little world of wonderful things, by Blue Logan.' },
   'shop.html':                 { page: 'shop',    nav: 'shop',    title: "Shop all | Blue's Shop", desc: 'Everything in Blue Logan\'s shop.' },
   'product.html':              { page: 'product', nav: 'shop',    title: "Blue's Shop", desc: 'From Blue Logan\'s shop.' },
-  'basket.html':               { page: 'basket',  nav: 'basket',  title: "Basket | Blue's Shop", desc: 'Your basket.', noindex: true },
-  'order-thanks.html':         { page: 'thanks',  nav: '',        title: "Thank you | Blue's Shop", desc: 'Order confirmed.', noindex: true },
   'contact.html':              { page: 'contact', nav: 'contact', title: "Contact | Blue's Shop", desc: 'Contact Blue Logan.' },
-  'delivery-and-returns.html': { page: 'info',    nav: '',        title: "Delivery and returns | Blue's Shop", desc: 'Delivery and returns.' },
   '404.html':                  { page: 'notfound', nav: '',       title: "Nothing here | Blue's Shop", desc: 'Page not found.', noindex: true },
 };
 

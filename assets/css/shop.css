@@ -75,11 +75,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .main-nav .shop-all:hover { background: var(--turq-ink); color: #fff; }
 .main-nav .shop-all[aria-current="page"] { background: var(--turq-ink); }
-.basket-link { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; white-space: nowrap; }
-/* TODO(Blue): a basket drawn by Blue replaces this simple line drawing. */
-.basket-icon { width: 30px; height: 26px; }
-.basket-count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--red); color: #fff; font-size: 12px; font-weight: 700; display: inline-grid; place-items: center; }
-.basket-count[data-n="0"] { background: transparent; color: var(--grey); border: 1px solid var(--line); }
 @media (max-width: 859px) {
   .header-row { flex-wrap: wrap; padding-top: 10px; min-height: 0; }
   .wordmark { font-size: 26px; }
@@ -94,63 +89,24 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .main-nav .shop-all { padding: 7px 12px; }
 }
 
-/* ---------- The shopfront ---------- */
+/* ---------- The shopfront ----------
+   Blue's drawing, with one blank spot (the window) where the products he
+   ticks "In the shop window" take turns. Nothing moves except that. */
 .shopfront-wrap { padding-top: clamp(16px, 3vw, 32px); }
 .shopfront { position: relative; width: 100%; margin: 0 auto; max-width: 1600px; aspect-ratio: 16 / 9; }
-.shopfront.is-mobile { aspect-ratio: 3 / 4; max-width: 640px; }
+.shopfront.is-mobile { max-width: 640px; }
 .shopfront > img.art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.zone { position: absolute; display: block; }
-.zone .zone-label {
-  position: absolute; left: 50%; bottom: -14px; transform: translate(-50%, 6px); opacity: 0; pointer-events: none;
-  font-family: var(--hand); font-size: 18px; white-space: nowrap; background: var(--card); padding: 4px 12px 2px; border: 2px solid var(--ink);
-  border-radius: 999px; transition: opacity .2s ease, transform .2s ease; z-index: 3;
+.shopfront.placeholder { border: 2px dashed rgba(28, 26, 23, .35); border-radius: 10px; background: rgba(251, 247, 239, .6); }
+.placeholder-note {
+  position: absolute; left: 0; right: 0; top: 7%; text-align: center; font-family: var(--hand); font-size: clamp(18px, 2.4vw, 34px); color: var(--grey); padding: 0 12px;
 }
-.zone:hover .zone-label, .zone:focus-visible .zone-label { opacity: 1; transform: translate(-50%, 0); }
-.has-art .zone { border-radius: 10px; transition: box-shadow .2s ease, background-color .2s ease; }
-.has-art .zone:hover, .has-art .zone:focus-visible { background: rgba(5, 172, 212, .10); box-shadow: inset 0 0 0 2px rgba(5, 172, 212, .55); }
-
-/* Wireframe until Blue's illustration arrives: a pencil plan of the shop. */
-.wireframe { border: 2px solid rgba(28, 26, 23, .55); border-radius: 6px; background: rgba(251, 247, 239, .55); }
-.wireframe::before {   /* roof line and pavement */
-  content: ''; position: absolute; left: 2%; right: 2%; top: 0; height: 2.6%; border-bottom: 2px solid rgba(28, 26, 23, .35);
-}
-.wireframe::after { content: ''; position: absolute; left: 0; right: 0; bottom: 4%; border-top: 2px dashed rgba(28, 26, 23, .3); }
-.wireframe .zone { border: 2px dashed rgba(28, 26, 23, .5); border-radius: 6px; background: rgba(243, 236, 223, .7); }
-.wireframe .zone:hover, .wireframe .zone:focus-visible { border-color: var(--turq-ink); background: rgba(5, 172, 212, .08); }
-.wireframe .zone .zone-label { opacity: 1; transform: translate(-50%, 0); position: absolute; left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); font-size: clamp(13px, 1.5vw, 22px); background: transparent; border: 0; }
-.wireframe .zone[data-kind="sign"] { border-style: solid; display: grid; place-items: center; }
-.wireframe .zone[data-kind="sign"] .zone-label { position: static; transform: none; font-size: clamp(22px, 3.6vw, 56px); }
-.wireframe .zone[data-kind="window"] .zone-label, .wireframe .zone[data-kind="door"] .zone-label { top: auto; bottom: 8px; transform: translateX(-50%); background: var(--card); border: 1px solid var(--line); padding: 3px 10px 1px; border-radius: 999px; }
-.wireframe-note {
-  position: absolute; right: 0; top: calc(100% + 8px); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--grey); white-space: nowrap;
-}
-.shopfront.wireframe { margin-bottom: 26px; }
-
-/* The window shows whatever Blue has ticked "In the shop window". */
-.window-show { position: absolute; inset: 7% 7% 18% 7%; overflow: hidden; border-radius: 4px; background: var(--card); }
-.window-show img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .8s ease; }
-.window-show img.on { opacity: 1; }
-.has-art .window-show { inset: 4%; }
-
-/* The door swings open a little when you point at it. */
-.door-leaf {
-  position: absolute; inset: 5% 8% 3% 8%; border: 2px solid rgba(28, 26, 23, .55); border-radius: 4px; background: var(--card);
-  transform-origin: left center; transition: transform .5s cubic-bezier(.2, .7, .2, 1); z-index: 1;
-}
-.door-leaf::after { content: ''; position: absolute; right: 9%; top: 52%; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
-.zone[data-kind="door"] { perspective: 900px; }
-.zone[data-kind="door"]:hover .door-leaf, .zone[data-kind="door"]:focus-visible .door-leaf { transform: rotateY(-28deg); }
-.door-glow { position: absolute; inset: 5% 8% 3% 8%; background: radial-gradient(circle at 30% 40%, rgba(242, 194, 48, .55), rgba(242, 194, 48, 0) 70%); }
-.open-sign {   /* a little sign that swings on the door */
-  position: absolute; left: 50%; top: 14%; z-index: 2; transform-origin: 50% -14px; translate: -50% 0;
-  font-family: var(--hand); font-size: clamp(12px, 1.2vw, 18px); background: var(--red); color: #fff; padding: 2px 10px 0; border-radius: 3px;
-  animation: swing 3.6s ease-in-out infinite;
-}
-.open-sign::before { content: ''; position: absolute; left: 50%; top: -14px; height: 14px; border-left: 1px solid var(--ink); }
-@keyframes swing { 0%, 100% { rotate: -4deg; } 50% { rotate: 4deg; } }
-.has-art .door-leaf, .has-art .door-glow, .has-art .open-sign { display: none; }
-.has-art .zone[data-kind="door"] .door-layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transform-origin: left center; transition: transform .5s cubic-bezier(.2, .7, .2, 1); }
-.has-art .zone[data-kind="door"]:hover .door-layer { transform: perspective(900px) rotateY(-28deg); }
+.window-spot { position: absolute; display: block; overflow: hidden; background: var(--card); border-radius: 4px; }
+.placeholder .window-spot { border: 2px solid rgba(28, 26, 23, .55); }
+.window-spot img { position: absolute; inset: 4%; width: 92%; height: 92%; object-fit: contain; opacity: 0; transition: opacity .9s ease; }
+.window-spot img.on { opacity: 1; }
+.spot-note { position: absolute; left: 0; right: 0; bottom: -2px; transform: translateY(100%); }
+.placeholder .window-spot { overflow: visible; }
+.placeholder .spot-note { bottom: -10px; text-align: center; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--grey); line-height: 1.4; }
 
 /* ---------- Under the shopfront ---------- */
 .welcome { text-align: center; padding: clamp(28px, 5vw, 56px) 0 8px; }
@@ -166,7 +122,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .cat { display: block; min-width: 0; }
 .cats > *, .grid > * { min-width: 0; }
 .cat-img { aspect-ratio: 1; background: var(--card); border-radius: 10px; overflow: hidden; display: grid; place-items: center; border: 1px solid var(--line); }
-.cat-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+.cat-img img { width: 92%; height: 92%; object-fit: contain; transition: transform .5s ease; }   /* whole photo, never cropped */
 .cat:hover .cat-img img { transform: scale(1.04); }
 .cat-soon { font-family: var(--hand); color: var(--grey); font-size: 18px; }
 .cat-name { display: inline-block; font-family: var(--hand); font-size: clamp(18px, 1.8vw, 22px); margin-top: 10px; white-space: nowrap; max-width: none; }
@@ -215,8 +171,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .product { display: grid; gap: clamp(26px, 5vw, 64px); grid-template-columns: 1fr; }
 @media (min-width: 900px) { .product { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; } }
 .product > * { min-width: 0; }
-.gallery-main { background: var(--card); border-radius: 12px; border: 1px solid var(--line); aspect-ratio: 4 / 5; overflow: hidden; display: grid; place-items: center; }
-.gallery-main img { width: 100%; height: 100%; object-fit: contain; }
+.gallery-main { border-radius: 12px; overflow: hidden; display: flex; justify-content: center; }
+/* The photo at its own shape, whole, never cropped. */
+.gallery-main img { width: auto; max-width: 100%; height: auto; max-height: 82vh; border-radius: 12px; }
 .thumbs { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
 .thumbs button { width: 70px; height: 70px; padding: 0; border: 2px solid transparent; border-radius: 8px; background: var(--card); overflow: hidden; cursor: pointer; }
 .thumbs button[aria-current="true"] { border-color: var(--ink); }
@@ -225,22 +182,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .info .cat-link { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--turq-ink); font-weight: 500; }
 .info h1 { font-family: var(--hand); font-weight: 400; font-size: clamp(30px, 4vw, 48px); margin: 8px 0 6px; white-space: nowrap; line-height: 1.1; }
 .fit-wrap { white-space: normal !important; }
-.price { font-size: 22px; font-weight: 700; margin: 0 0 18px; }
+.sold-note { display: inline-block; font-family: var(--hand); background: var(--red); color: #fff; padding: 2px 10px 0; border-radius: 3px; rotate: -2deg; margin: 0 0 14px; }
 .desc { white-space: pre-line; color: #3a362f; margin: 0 0 22px; max-width: 56ch; }
-.options { border: 0; padding: 0; margin: 0 0 18px; }
-.options legend { font-weight: 500; margin-bottom: 8px; }
-.opt-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.opt-row label { margin: 0; }
-.opt-row input { position: absolute; opacity: 0; }
-.opt-row span { display: inline-block; padding: 9px 15px; border: 1px solid var(--line); background: var(--card); border-radius: 999px; cursor: pointer; white-space: nowrap; }
-.opt-row input:checked + span { background: var(--ink); color: var(--card); border-color: var(--ink); }
-.opt-row input:disabled + span { opacity: .45; text-decoration: line-through; cursor: not-allowed; }
-.opt-row input:focus-visible + span { outline: 2px solid var(--turq-ink); outline-offset: 2px; }
-.buy-row { display: flex; gap: 10px; flex-wrap: wrap; }
-.qty { display: inline-flex; align-items: center; border: 1px solid var(--line); background: var(--card); border-radius: 999px; height: 52px; }
-.qty button { width: 44px; height: 100%; border: 0; background: none; font-size: 20px; cursor: pointer; }
-.qty input { width: 36px; border: 0; background: none; text-align: center; font-weight: 700; -moz-appearance: textfield; padding: 0; }
-.qty input::-webkit-outer-spin-button, .qty input::-webkit-inner-spin-button { -webkit-appearance: none; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 26px; border-radius: 999px;
   background: var(--ink); color: var(--card); border: 0; font-weight: 700; font-size: 16px; cursor: pointer; white-space: nowrap; transition: background .2s;
@@ -251,7 +194,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .btn.light:hover { background: var(--ink); color: var(--card); }
 .btn.block { width: 100%; }
 .note { margin-top: 16px; }
-.delivery { margin-top: 26px; padding: 14px 16px; border-left: 3px solid var(--turq); background: rgba(251, 247, 239, .7); font-size: 15px; }
 
 /* ---------- Forms ---------- */
 .form h2 { font-family: var(--hand); font-weight: 400; font-size: 28px; margin: 26px 0 6px; }
@@ -268,26 +210,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .notice.warn { border-color: var(--red); }
 .hp { position: absolute; left: -9999px; }
 
-/* ---------- Basket ---------- */
-.basket { display: grid; gap: 30px; grid-template-columns: 1fr; }
-@media (min-width: 900px) { .basket { grid-template-columns: 1.6fr 1fr; align-items: start; } }
-.lines { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-.line { display: grid; grid-template-columns: 84px 1fr; gap: 14px 16px; padding: 18px 0; border-bottom: 1px solid var(--line); }
-.line img { width: 84px; height: 104px; object-fit: contain; background: var(--card); border-radius: 8px; border: 1px solid var(--line); }
-.line-title { font-weight: 500; }
-.line-sub { color: var(--grey); font-size: 14px; }
-.line-controls { display: flex; align-items: center; gap: 14px; margin-top: 10px; flex-wrap: wrap; }
-.line-controls .qty { height: 42px; }
-.line-controls .qty button { width: 38px; }
-.link-btn { background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; color: var(--grey); }
-.line-price { margin-left: auto; font-weight: 700; white-space: nowrap; }
-.summary { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; position: sticky; top: 100px; }
-.summary h2 { font-family: var(--hand); font-weight: 400; font-size: 30px; margin: 0 0 10px; }
-.sum-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; }
-.sum-row.total { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 12px; font-weight: 700; font-size: 19px; }
-.code-form { display: flex; gap: 8px; margin: 14px 0 6px; }
-.code-form input { flex: 1; min-width: 0; height: 44px; border: 1px solid var(--line); border-radius: 999px; padding: 0 14px; background: #fff; text-transform: uppercase; }
-.code-form .btn { min-height: 44px; padding: 0 16px; font-size: 14px; }
 
 /* ---------- Simple pages ---------- */
 .prose { max-width: 66ch; }
@@ -306,4 +228,3 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .consent p { margin: 0; flex: 1 1 240px; font-size: 14px; }
 .consent .btn { min-height: 40px; padding: 0 16px; font-size: 14px; }
 .demo-banner { background: var(--ink); color: var(--card); text-align: center; padding: 6px var(--pad); font-size: 13px; }
-.closed-banner { background: var(--red); color: #fff; text-align: center; padding: 8px var(--pad); font-weight: 500; }

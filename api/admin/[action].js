@@ -31,11 +31,6 @@ export function poundsToPence(v) {
   if (!/^\d+(\.\d{1,2})?$/.test(s)) return NaN;
   return Math.round(parseFloat(s) * 100);
 }
-function stockValue(v) {
-  if (v === null || v === undefined || String(v).trim() === '') return null;
-  const n = Number(v);
-  return Number.isInteger(n) && n >= 0 && n <= 100000 ? n : NaN;
-}
 function cleanHotspot(h) {
   if (!h || h.x === undefined || h.y === undefined) return null;
   const x = Number(h.x), y = Number(h.y);
@@ -45,15 +40,17 @@ function cleanHotspot(h) {
 }
 const isUuid = (v) => typeof v === 'string' && /^[0-9a-f-]{36}$/i.test(v);
 
+// The shop is enquiry only: no price, no stock count. A piece is either
+// available or sold (stored as stock 0). Mode is always "enquire".
+// (The sales code is kept, switched off, in case Blue ever sells directly.)
 function cleanProduct(b) {
   const errors = {};
-  const mode = b.mode === 'enquire' ? 'enquire' : 'buy';
   const row = {
     title: clampText(b.title, 120),
     description: clampText(b.description, 5000),
-    mode,
-    price_pence: poundsToPence(b.price),
-    stock: stockValue(b.stock),
+    mode: 'enquire',
+    price_pence: null,
+    stock: b.sold ? 0 : null,
     images: Array.isArray(b.images) ? b.images.filter(validImage).slice(0, 8) : [],
     is_published: !!b.is_published,
     is_featured: !!b.is_featured,
@@ -63,16 +60,8 @@ function cleanProduct(b) {
   row.slug = slugify(b.slug || row.title);
   if (!row.title) errors.title = 'Please give it a name.';
   if (!row.slug) errors.slug = 'The web address needs at least one letter or number.';
-  if (Number.isNaN(row.price_pence)) errors.price = 'Please enter a price like 25 or 24.50.';
-  if (mode === 'buy' && row.price_pence === null) errors.price = 'Something people can buy needs a price.';
-  if (Number.isNaN(row.stock)) errors.stock = 'Stock must be a whole number, or blank if you make them to order.';
   if (row.is_published && !row.images.length) errors.images = 'Add at least one photo before showing it in the shop.';
-
-  const variants = (Array.isArray(b.variants) ? b.variants : []).slice(0, 12)
-    .filter((v) => v && String(v.label || '').trim())
-    .map((v) => ({ label: clampText(v.label, 80), price_pence: poundsToPence(v.price), stock: stockValue(v.stock) }));
-  if (variants.some((v) => Number.isNaN(v.price_pence) || Number.isNaN(v.stock))) errors.variants = 'Check the option prices and stock numbers.';
-  return { row, variants: mode === 'buy' ? variants : [], errors };
+  return { row, variants: [], errors };
 }
 
 async function requireAdmin(req, res) {

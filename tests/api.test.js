@@ -41,9 +41,10 @@ const lamp2 = { ...P['placeholder-lampshade-two'], variants: lampVariants };
 
 console.log('\nShop data');
 await test('five starting products (plus test products) are public', () => assert.equal(products.length, 10));
-await test('prices are sent for buy products, never for enquire ones, and stock counts never', () => {
-  assert.equal(P['vase'].price_pence, 24000); assert.equal(P['vase'].mode, 'buy');
-  assert.equal(enq.price_pence, null); assert.equal(enq.mode, 'enquire');
+await test('the shop is enquiry only: no prices on Blue\'s products, no stock counts ever', () => {
+  for (const slug of ['lampshade-faces', 'lampshade-party', 'vase', 'ritas', 'ritas-coaster']) {
+    assert.equal(P[slug].mode, 'enquire', slug); assert.equal(P[slug].price_pence, null, slug);
+  }
   for (const p of products) assert.ok(!('stock' in p), `${p.slug} leaks stock`);
 });
 await test('products carry their category; the five starting categories are public, in order', async () => {
@@ -65,7 +66,7 @@ await test('anyone can read categories, nobody public can write them', async () 
   assert.ok(w.status >= 400);
 });
 
-console.log('\nPricing (server only)');
+console.log('\nSales code (switched off, kept for later)');
 await test('quote ignores any price sent by the browser', async () => {
   const q = (await post('/api/shop/quote', { items: [{ product_id: print1.id, qty: 2, price_pence: 1, unit_pence: 1 }] })).body;
   assert.equal(q.lines[0].unit_pence, 12000);
@@ -236,7 +237,7 @@ await test('admin logs in (HttpOnly signed cookie) and can open the portal', asy
   assert.equal((await adminGet('home')).status, 200);
 });
 
-console.log('\nPortal: orders');
+console.log('\nSales code: order handling (switched off, kept for later)');
 await test('orders list shows the paid order and the home count', async () => {
   const o = (await adminGet('orders?status=paid')).body.orders;
   assert.ok(o.some((x) => x.id === orderId));
@@ -286,7 +287,7 @@ await test('honeypot silently drops bots', async () => {
 
 console.log('\nPortal: products and settings');
 let newId;
-await test('add a product with a photo, price, stock, category, options and the window', async () => {
+await test('add a product with a photo, category, the window and sold', async () => {
   const u = (await adminPost('upload-url', { content_type: 'image/png' })).body;
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
   const put = await fetch(u.uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'image/png' }, body: png });
@@ -296,27 +297,18 @@ await test('add a product with a photo, price, stock, category, options and the 
   const wear = cats.find((c) => c.slug === 'things-to-wear');
   const r = await adminPost('product-save', {
     title: 'Test Scarf & Hat', description: 'x', images: [u.publicUrl, 'https://evil.example.com/x.jpg'],
-    price: '£35.50', stock: '12', mode: 'buy', category_id: wear.id, is_featured: true, is_published: false,
-    variants: [{ label: 'Red', price: '', stock: '5' }, { label: 'Blue', price: '38', stock: '' }],
+    price: '35', mode: 'buy', category_id: wear.id, is_featured: true, is_published: false, sold: true,
   });
   assert.equal(r.status, 200, JSON.stringify(r.body));
   newId = r.body.product.id;
   const p = r.body.product;
-  assert.equal(p.slug, 'test-scarf-and-hat'); assert.equal(p.price_pence, 3550); assert.equal(p.stock, 12);
-  assert.equal(p.category_id, wear.id); assert.equal(p.is_featured, true);
-  assert.equal(p.variants.length, 2); assert.equal(p.variants[1].price_pence, 3800);
+  assert.equal(p.slug, 'test-scarf-and-hat'); assert.equal(p.mode, 'enquire', 'always enquiry'); assert.equal(p.price_pence, null, 'never a price');
+  assert.equal(p.stock, 0, 'sold'); assert.equal(p.category_id, wear.id); assert.equal(p.is_featured, true);
   assert.deepEqual(p.images, [u.publicUrl], 'outside image URLs are dropped');
 });
-await test('enquire products drop their price and options', async () => {
-  const r = await adminPost('product-save', { id: newId, title: 'Test Scarf & Hat', mode: 'enquire', price: '35', images: [], variants: [{ label: 'Red' }] });
-  assert.equal(r.status, 200); assert.equal(r.body.product.mode, 'enquire'); assert.equal(r.body.product.variants.length, 0);
-  await adminPost('product-save', { id: newId, title: 'Test Scarf & Hat', mode: 'buy', price: '35.50', stock: '12', images: [], is_featured: true });
-});
 await test('validation explains problems in plain words', async () => {
-  const r = await adminPost('product-save', { title: '', mode: 'buy', price: 'abc', stock: '1.5', is_published: true, images: [] });
-  assert.equal(r.status, 400); assert.ok(r.body.errors.title && r.body.errors.images && r.body.errors.price && r.body.errors.stock);
-  const noPrice = await adminPost('product-save', { title: 'X', mode: 'buy', price: '' });
-  assert.ok(noPrice.body.errors.price);
+  const r = await adminPost('product-save', { title: '', is_published: true, images: [] });
+  assert.equal(r.status, 400); assert.ok(r.body.errors.title && r.body.errors.images);
 });
 await test('unpublished products never appear on the public shop', async () => {
   const list = (await get('/api/shop/products')).body.products;
@@ -353,12 +345,12 @@ await test('settings: name, welcome line and both illustrations reach the shop',
   assert.equal(d.hero_image, '/images/placeholders/hero.svg'); assert.equal(d.hero_image_mobile, '/images/placeholders/hero.svg');
   await adminPost('settings-save', { shop_title: "Blue's Shop", intro_text: 'Hello.', hero_image: '', hero_image_mobile: '', delivery_fee: '5', free_delivery_over: '150' });
 });
-await test('settings: closing the shop stops checkout', async () => {
-  await adminPost('settings-save', { shop_open: false, shop_title: "Blue's Shop", hero_image: '', hero_image_mobile: '', delivery_fee: '5', free_delivery_over: '150' });
+await test('a closed shop stops checkout (sales code)', async () => {
+  await sql(`update bl_site_settings set value='false' where key='shop_open'`);
   assert.equal((await get('/api/shop/products')).body.shop_open, false);
   const r = await post('/api/checkout', { items: [{ product_id: P['placeholder-print-two'].id, qty: 1 }] });
   assert.equal(r.status, 409); assert.match(r.body.error, /closed/);
-  await adminPost('settings-save', { shop_open: true, shop_title: "Blue's Shop", hero_image: '', hero_image_mobile: '', delivery_fee: '5', free_delivery_over: '150' });
+  await sql(`update bl_site_settings set value='true' where key='shop_open'`);
 });
 await test('categories: add, rename, reorder; a category in use cannot be deleted', async () => {
   const add = await adminPost('category-save', { name: 'Odd Socks', description: 'Pairs that do not match.' });

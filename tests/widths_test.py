@@ -2,7 +2,7 @@
 Long piece names typed by Blue are allowed to wrap (fit-wrap) rather than run off a phone screen."""
 import sys
 from playwright.sync_api import sync_playwright
-pages = ['/','/shop','/category/objects-and-oddities','/search','/shop/vase','/basket','/contact','/delivery-and-returns','/order/thanks','/nope','/portal/login']
+pages = ['/','/shop','/category/objects-and-oddities','/search','/shop/vase','/contact','/nope','/portal/login']
 widths=[360,390,768,1440]
 problems=[]
 with sync_playwright() as p:

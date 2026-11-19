@@ -19,8 +19,8 @@ import { priceBasket } from '../_lib/basket.js';
 import { sendEnquiryAlert } from '../_lib/email.js';
 import { stripe } from '../_lib/stripe.js';
 
-// Fields the public is allowed to see. Exact stock numbers stay on the
-// server; the shop only needs to know whether something has sold out.
+// Fields the public is allowed to see. The shop is enquiry only, so no
+// price is sent; a piece is just available or sold.
 const point = (h) => (h && Number.isFinite(+h.x) && Number.isFinite(+h.y) ? { x: +h.x, y: +h.y } : null);
 function publicView(p, cats) {
   const c = cats.find((x) => x.id === p.category_id);
@@ -28,7 +28,7 @@ function publicView(p, cats) {
   return {
     id: p.id, slug: p.slug, title: p.title, description: p.description,
     images: p.images || [], mode: p.mode, price_pence: p.mode === 'buy' ? p.price_pence : null,
-    sold_out: p.mode === 'buy' && (variants.length ? variants.every((v) => v.sold_out) : p.stock === 0),
+    sold_out: p.stock === 0 || (p.mode === 'buy' && variants.length > 0 && variants.every((v) => v.sold_out)),
     featured: !!p.is_featured, hotspot: point(p.hotspot),
     category: c ? { slug: c.slug, name: c.name } : null,
     variants: p.mode === 'buy' ? variants : [],
